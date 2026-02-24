@@ -116,7 +116,7 @@ export function RepositoryCard({ repository, showOwner = true }: RepositoryCardP
           <div className="flex-1 min-w-0">
             <CardTitle className="text-base font-semibold truncate">
               <Link
-                href={`/repo/${owner_login}/${repo_name}`}
+                href={`/repositories/${repository.id}`}
                 className="text-primary hover:underline flex items-center gap-1"
               >
                 {showOwner ? (
