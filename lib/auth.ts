@@ -1,6 +1,7 @@
 import { NextAuthOptions } from 'next-auth';
 import GitHubProvider from 'next-auth/providers/github';
-import { createUser, getUserByGithubId, getUserWithToken, updateUser } from './db';
+import { sql } from '@vercel/postgres';
+import { createUser, getUserByGithubId, updateUser } from './db';
 
 // Extended types for next-auth
 declare module 'next-auth' {
