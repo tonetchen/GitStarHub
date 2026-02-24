@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Star Manager - 原型预览</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+        }
+        .card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        }
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+            border: none;
+        }
+        .btn-primary:hover {
+            background: #2563eb;
+        }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #d1d5db;
+            color: #374151;
+        }
+        .btn-outline:hover {
+            background: #f3f4f6;
+        }
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            background: #f3f4f6;
+            color: #374151;
+        }
+        .input {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            outline: none;
+        }
+        .input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        .tab {
+            padding: 0.5rem 1rem;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-weight: 500;
+            border-bottom: 2px solid transparent;
+            color: #6b7280;
+        }
+        .tab.active {
+            color: #3b82f6;
+            border-bottom-color: #3b82f6;
+        }
+        .page {
+            display: none;
+        }
+        .page.active {
+            display: block;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- 顶部导航 -->
+    <nav class="bg-white border-b border-gray-200 px-4 py-3">
+        <div class="container mx-auto flex items-center justify-between">
+            <h1 class="text-xl font-bold text-gray-900">GitHub Star Manager</h1>
+            <div class="flex items-center gap-4">
+                <span class="text-sm text-gray-600">欢迎，chenxunhua1</span>
+                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=chenxunhua1" class="w-8 h-8 rounded-full" alt="Avatar">
+            </div>
+        </div>
+    </nav>
+
+    <!-- 页面切换标签 -->
+    <div class="bg-white border-b border-gray-200">
+        <div class="container mx-auto">
+            <div class="flex gap-1">
+                <button class="tab active" onclick="showPage('home')">首页</button>
+                <button class="tab" onclick="showPage('updates')">最近更新</button>
+                <button class="tab" onclick="showPage('detail')">仓库详情</button>
+                <button class="tab" onclick="showPage('settings')">设置</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 首页 -->
+    <div id="home" class="page active">
+        <div class="container mx-auto px-4 py-8">
+            <!-- AI 搜索区域 -->
+            <div class="card mb-8 bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
+                <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+                    <span>🤖</span> AI 智能搜索
+                </h2>
+
+                <!-- 搜索框 -->
+                <div class="flex gap-3 mb-4">
+                    <input
+                        type="text"
+                        class="input flex-1"
+                        placeholder="例如：帮我找 React 状态管理的仓库"
+                        id="searchInput"
+                    >
+                    <button class="btn btn-primary" onclick="mockSearch()">搜索</button>
+                </div>
+
+                <!-- 示例问题 -->
+                <div class="mb-4">
+                    <span class="text-sm text-gray-500 mr-2">试试：</span>
+                    <div class="flex flex-wrap gap-2 mt-2">
+                        <button class="badge cursor-pointer hover:bg-blue-100 hover:text-blue-700" onclick="setQuery('React 状态管理')">React 状态管理</button>
+                        <button class="badge cursor-pointer hover:bg-blue-100 hover:text-blue-700" onclick="setQuery('Node.js 日志框架')">Node.js 日志框架</button>
+                        <button class="badge cursor-pointer hover:bg-blue-100 hover:text-blue-700" onclick="setQuery('Python 数据可视化')">Python 数据可视化</button>
+                        <button class="badge cursor-pointer hover:bg-blue-100 hover:text-blue-700" onclick="setQuery('TypeScript 工具库')">TypeScript 工具库</button>
+                    </div>
+                </div>
+
+                <!-- 搜索结果 -->
+                <div id="searchResults" style="display: none;">
+                    <div class="bg-white p-4 rounded-lg border border-gray-200 mb-4">
+                        <h3 class="font-semibold mb-2 text-gray-700">AI 推荐</h3>
+                        <p class="text-gray-600 whitespace-pre-line" id="aiAnswer"></p>
+                    </div>
+                    <h3 class="font-semibold mb-3 text-gray-700">相关仓库</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3" id="repoResults"></div>
+                </div>
+            </div>
+
+            <!-- 统计卡片 -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                <div class="card">
+                    <div class="text-sm text-gray-500 mb-1">本周活跃仓库</div>
+                    <div class="text-3xl font-bold">23</div>
+                    <div class="text-xs text-gray-400 mt-1">近7天有更新</div>
+                </div>
+                <div class="card">
+                    <div class="text-sm text-gray-500 mb-1">今日更新</div>
+                    <div class="text-3xl font-bold">12</div>
+                    <div class="text-xs text-gray-400 mt-1">条新动态</div>
+                </div>
+                <div class="card">
+                    <div class="text-sm text-gray-500 mb-1">上次同步</div>
+                    <div class="text-lg font-semibold">2小时前</div>
+                    <div class="text-xs text-gray-400 mt-1">数据已同步</div>
+                </div>
+            </div>
+
+            <!-- 仓库列表 -->
+            <h2 class="text-xl font-bold mb-4">我的 Stars</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- 仓库卡片 1 -->
+                <div class="card hover:shadow-lg transition-shadow">
+                    <div class="flex items-center gap-2 mb-3">
+                        <img src="https://api.dicebear.com/7.x/identicon/svg?seed=vercel" class="w-6 h-6 rounded">
+                        <h3 class="font-semibold">vercel/next.js</h3>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-4">The React Framework for the Web</p>
+                    <div class="flex items-center gap-4 text-sm text-gray-500 mb-3">
+                        <span class="flex items-center gap-1">
+                            <span class="w-3 h-3 rounded-full bg-yellow-400"></span>
+                            JavaScript
+                        </span>
+                        <span class="flex items-center gap-1">⭐ 120K</span>
+                    </div>
+                    <div class="flex gap-1 mb-4">
+                        <span class="badge">react</span>
+                        <span class="badge">nextjs</span>
+                    </div>
+                    <button class="btn btn-outline w-full text-sm">查看详情</button>
+                </div>
+
+                <!-- 仓库卡片 2 -->
+                <div class="card hover:shadow-lg transition-shadow">
+                    <div class="flex items-center gap-2 mb-3">
+                        <img src="https://api.dicebear.com/7.x/identicon/svg?seed=facebook" class="w-6 h-6 rounded">
+                        <h3 class="font-semibold">facebook/react</h3>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-4">A declarative, efficient, and flexible JavaScript library</p>
+                    <div class="flex items-center gap-4 text-sm text-gray-500 mb-3">
+                        <span class="flex items-center gap-1">
+                            <span class="w-3 h-3 rounded-full bg-blue-400"></span>
+                            TypeScript
+                        </span>
+                        <span class="flex items-center gap-1">⭐ 220K</span>
+                    </div>
+                    <div class="flex gap-1 mb-4">
+                        <span class="badge">react</span>
+                        <span class="badge">frontend</span>
+                    </div>
+                    <button class="btn btn-outline w-full text-sm">查看详情</button>
+                </div>
+
+                <!-- 仓库卡片 3 -->
+                <div class="card hover:shadow-lg transition-shadow">
+                    <div class="flex items-center gap-2 mb-3">
+                        <img src="https://api.dicebear.com/7.x/identicon/svg?seed=pmndrs" class="w-6 h-6 rounded">
+                        <h3 class="font-semibold">pmndrs/zustand</h3>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-4">🐻 Bear necessities for state management in React</p>
+                    <div class="flex items-center gap-4 text-sm text-gray-500 mb-3">
+                        <span class="flex items-center gap-1">
+                            <span class="w-3 h-3 rounded-full bg-blue-400"></span>
+                            TypeScript
+                        </span>
+                        <span class="flex items-center gap-1">⭐ 45K</span>
+                    </div>
+                    <div class="flex gap-1 mb-4">
+                        <span class="badge">state-management</span>
+                        <span class="badge">react</span>
+                    </div>
+                    <button class="btn btn-outline w-full text-sm">查看详情</button>
+                </div>
+
+                <!-- 仓库卡片 4 -->
+                <div class="card hover:shadow-lg transition-shadow">
+                    <div class="flex items-center gap-2 mb-3">
+                        <img src="https://api.dicebear.com/7.x/identicon/svg?seed=tailwind" class="w-6 h-6 rounded">
+                        <h3 class="font-semibold">tailwindlabs/tailwindcss</h3>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-4">A utility-first CSS framework for rapid UI development</p>
+                    <div class="flex items-center gap-4 text-sm text-gray-500 mb-3">
+                        <span class="flex items-center gap-1">
+                            <span class="w-3 h-3 rounded-full bg-purple-400"></span>
+                            CSS
+                        </span>
+                        <span class="flex items-center gap-1">⭐ 80K</span>
+                    </div>
+                    <div class="flex gap-1 mb-4">
+                        <span class="badge">css</span>
+                        <span class="badge">tailwind</span>
+                    </div>
+                    <button class="btn btn-outline w-full text-sm">查看详情</button>
+                </div>
+
+                <!-- 仓库卡片 5 -->
+                <div class="card hover:shadow-lg transition-shadow">
+                    <div class="flex items-center gap-2 mb-3">
+                        <img src="https://api.dicebear.com/7.x/identicon/svg?seed=vercel" class="w-6 h-6 rounded">
+                        <h3 class="font-semibold">vercel/swr</h3>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-4">React Hooks for Data Fetching</p>
+                    <div class="flex items-center gap-4 text-sm text-gray-500 mb-3">
+                        <span class="flex items-center gap-1">
+                            <span class="w-3 h-3 rounded-full bg-blue-400"></span>
+                            TypeScript
+                        </span>
+                        <span class="flex items-center gap-1">⭐ 30K</span>
+                    </div>
+                    <div class="flex gap-1 mb-4">
+                        <span class="badge">react-hooks</span>
+                        <span class="badge">data-fetching</span>
+                    </div>
+                    <button class="btn btn-outline w-full text-sm">查看详情</button>
+                </div>
+
+                <!-- 仓库卡片 6 -->
+                <div class="card hover:shadow-lg transition-shadow">
+                    <div class="flex items-center gap-2 mb-3">
+                        <img src="https://api.dicebear.com/7.x/identicon/svg?seed=shadcn" class="w-6 h-6 rounded">
+                        <h3 class="font-semibold">shadcn-ui/ui</h3>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-4">Beautifully designed components built with Radix UI</p>
+                    <div class="flex items-center gap-4 text-sm text-gray-500 mb-3">
+                        <span class="flex items-center gap-1">
+                            <span class="w-3 h-3 rounded-full bg-blue-400"></span>
+                            TypeScript
+                        </span>
+                        <span class="flex items-center gap-1">⭐ 60K</span>
+                    </div>
+                    <div class="flex gap-1 mb-4">
+                        <span class="badge">components</span>
+                        <span class="badge">ui</span>
+                    </div>
+                    <button class="btn btn-outline w-full text-sm">查看详情</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 最近更新页 -->
+    <div id="updates" class="page">
+        <div class="container mx-auto px-4 py-8">
+            <h1 class="text-2xl font-bold mb-8">最近更新</h1>
+
+            <!-- 筛选器 -->
+            <div class="flex gap-2 mb-6">
+                <button class="badge" style="background: #3b82f6; color: white;">全部</button>
+                <button class="badge cursor-pointer hover:bg-gray-200">Commits</button>
+                <button class="badge cursor-pointer hover:bg-gray-200">Issues</button>
+                <button class="badge cursor-pointer hover:bg-gray-200">Pull Requests</button>
+            </div>
+
+            <!-- 更新列表 -->
+            <div class="space-y-4">
+                <div class="card">
+                    <div class="flex items-start gap-4">
+                        <div class="flex-shrink-0 w-8 h-8 bg-green-100 rounded-full flex items-center justify-center text-green-600">
+                            ✓
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="font-semibold">vercel/next.js</span>
+                                <span class="badge">commit</span>
+                            </div>
+                            <p class="text-sm mb-2">feat: add new optimization features</p>
+                            <div class="flex items-center gap-4 text-xs text-gray-500">
+                                <span>developer</span>
+                                <span>30分钟前</span>
+                            </div>
+                        </div>
+                        <a href="#" class="text-blue-600">↗</a>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="flex items-start gap-4">
+                        <div class="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600">
+                            #
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="font-semibold">facebook/react</span>
+                                <span class="badge">issue</span>
+                            </div>
+                            <p class="text-sm mb-2">Bug: useState not updating correctly</p>
+                            <div class="flex items-center gap-4 text-xs text-gray-500">
+                                <span>user123</span>
+                                <span>1小时前</span>
+                            </div>
+                        </div>
+                        <a href="#" class="text-blue-600">↗</a>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="flex items-start gap-4">
+                        <div class="flex-shrink-0 w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center text-purple-600">
+                            ⎇
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="font-semibold">pmndrs/zustand</span>
+                                <span class="badge">pr</span>
+                            </div>
+                            <p class="text-sm mb-2">feat: add middleware support</p>
+                            <div class="flex items-center gap-4 text-xs text-gray-500">
+                                <span>contributor</span>
+                                <span>2小时前</span>
+                            </div>
+                        </div>
+                        <a href="#" class="text-blue-600">↗</a>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="flex items-start gap-4">
+                        <div class="flex-shrink-0 w-8 h-8 bg-green-100 rounded-full flex items-center justify-center text-green-600">
+                            ✓
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="font-semibold">tailwindlabs/tailwindcss</span>
+                                <span class="badge">commit</span>
+                            </div>
+                            <p class="text-sm mb-2">fix: resolve color parsing issue</p>
+                            <div class="flex items-center gap-4 text-xs text-gray-500">
+                                <span>maintainer</span>
+                                <span>3小时前</span>
+                            </div>
+                        </div>
+                        <a href="#" class="text-blue-600">↗</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 仓库详情页 -->
+    <div id="detail" class="page">
+        <div class="container mx-auto px-4 py-8">
+            <button class="btn btn-outline mb-4 text-sm">← 返回列表</button>
+
+            <!-- 仓库信息 -->
+            <div class="card mb-8">
+                <div class="flex items-center gap-4 mb-4">
+                    <img src="https://api.dicebear.com/7.x/identicon/svg?seed=vercel" class="w-12 h-12 rounded">
+                    <div>
+                        <h1 class="text-2xl font-bold">vercel/next.js</h1>
+                        <p class="text-gray-600">The React Framework for the Web</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-6 mb-4">
+                    <span class="flex items-center gap-2">⭐ 120K</span>
+                    <span class="flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full bg-yellow-400"></span>
+                        JavaScript
+                    </span>
+                    <a href="#" class="flex items-center gap-2 text-blue-600">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                        访问仓库
+                    </a>
+                </div>
+
+                <div class="flex flex-wrap gap-2">
+                    <span class="badge">react</span>
+                    <span class="badge">nextjs</span>
+                    <span class="badge">ssr</span>
+                    <span class="badge">framework</span>
+                </div>
+            </div>
+
+            <!-- 最近更新 -->
+            <div class="card">
+                <h2 class="text-xl font-bold mb-4">最近更新</h2>
+
+                <div class="border-b border-gray-200 mb-4">
+                    <div class="flex">
+                        <button class="tab active" style="border-bottom: 2px solid #3b82f6; color: #3b82f6;">Commits</button>
+                        <button class="tab">Issues</button>
+                        <button class="tab">Pull Requests</button>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="flex items-start gap-4 p-4 bg-gray-50 rounded">
+                        <div class="flex-shrink-0 w-8 h-8 bg-green-100 rounded-full flex items-center justify-center text-green-600 text-sm">
+                            ✓
+                        </div>
+                        <div class="flex-1">
+                            <p class="font-medium mb-1">feat: add new optimization features</p>
+                            <p class="text-sm text-gray-600 mb-2">Added automatic code splitting and lazy loading improvements</p>
+                            <div class="flex items-center gap-4 text-xs text-gray-500">
+                                <span>developer</span>
+                                <span>30分钟前</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-4 p-4 bg-gray-50 rounded">
+                        <div class="flex-shrink-0 w-8 h-8 bg-green-100 rounded-full flex items-center justify-center text-green-600 text-sm">
+                            ✓
+                        </div>
+                        <div class="flex-1">
+                            <p class="font-medium mb-1">fix: resolve hydration issues</p>
+                            <p class="text-sm text-gray-600 mb-2">Fixed client-server mismatch warnings</p>
+                            <div class="flex items-center gap-4 text-xs text-gray-500">
+                                <span>contributor</span>
+                                <span>2小时前</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-4 p-4 bg-gray-50 rounded">
+                        <div class="flex-shrink-0 w-8 h-8 bg-green-100 rounded-full flex items-center justify-center text-green-600 text-sm">
+                            ✓
+                        </div>
+                        <div class="flex-1">
+                            <p class="font-medium mb-1">docs: update getting started guide</p>
+                            <p class="text-sm text-gray-600 mb-2">Improved documentation with more examples</p>
+                            <div class="flex items-center gap-4 text-xs text-gray-500">
+                                <span>docs-team</span>
+                                <span>5小时前</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 设置页 -->
+    <div id="settings" class="page">
+        <div class="container mx-auto px-4 py-8 max-w-2xl">
+            <h1 class="text-2xl font-bold mb-8">设置</h1>
+
+            <!-- 同步设置 -->
+            <div class="card mb-6">
+                <h2 class="font-semibold mb-1">数据同步</h2>
+                <p class="text-sm text-gray-500 mb-4">配置 GitHub Stars 同步频率</p>
+
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between py-3 border-b border-gray-100">
+                        <div>
+                            <div class="font-medium">启用自动同步</div>
+                            <p class="text-sm text-gray-500">定时从 GitHub 同步你的 Stars</p>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" class="sr-only peer" checked>
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                        </label>
+                    </div>
+
+                    <div>
+                        <label class="block font-medium mb-2">同步频率</label>
+                        <select class="input">
+                            <option value="1">每1小时</option>
+                            <option value="2" selected>每2小时</option>
+                            <option value="6">每6小时</option>
+                            <option value="12">每12小时</option>
+                            <option value="24">每24小时</option>
+                        </select>
+                    </div>
+
+                    <button class="btn btn-primary w-full">保存设置</button>
+                </div>
+            </div>
+
+            <!-- AI 模型设置 -->
+            <div class="card mb-6">
+                <h2 class="font-semibold mb-1">AI 模型配置</h2>
+                <p class="text-sm text-gray-500 mb-4">配置 AI 搜索使用的模型</p>
+
+                <div>
+                    <label class="block font-medium mb-2">模型名称</label>
+                    <input type="text" class="input" placeholder="例如：glm-4、gpt-3.5-turbo" value="glm-4">
+                    <p class="text-sm text-gray-500 mt-1">API Key 和 Base URL 已在后端配置</p>
+                </div>
+
+                <button class="btn btn-primary w-full mt-4">保存设置</button>
+            </div>
+
+            <!-- 账户信息 -->
+            <div class="card">
+                <h2 class="font-semibold mb-4">账户</h2>
+                <div class="flex items-center gap-4 mb-4">
+                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=chenxunhua1" class="w-12 h-12 rounded-full">
+                    <div>
+                        <div class="font-medium">chenxunhua1</div>
+                        <div class="text-sm text-gray-500">已连接 GitHub</div>
+                    </div>
+                </div>
+                <button class="btn btn-outline w-full text-red-600 border-red-300 hover:bg-red-50">退出登录</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showPage(pageId) {
+            // 隐藏所有页面
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+
+            // 显示选中的页面
+            document.getElementById(pageId).classList.add('active');
+
+            // 更新标签状态
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+                tab.style.borderBottomColor = 'transparent';
+                tab.style.color = '#6b7280';
+            });
+
+            event.target.classList.add('active');
+            event.target.style.borderBottomColor = '#3b82f6';
+            event.target.style.color = '#3b82f6';
+        }
+
+        function setQuery(query) {
+            document.getElementById('searchInput').value = query;
+        }
+
+        function mockSearch() {
+            const query = document.getElementById('searchInput').value;
+            if (!query.trim()) return;
+
+            // 显示搜索结果
+            document.getElementById('searchResults').style.display = 'block';
+            document.getElementById('aiAnswer').textContent =
+                `根据你的需求"${query}"，我推荐以下仓库：\n\n` +
+                `1. **zustand** - 轻量级状态管理，API简洁\n` +
+                `2. **jotai** - 原子化状态管理，性能优秀\n` +
+                `3. **redux** - 成熟的解决方案，生态丰富`;
+
+            document.getElementById('repoResults').innerHTML = `
+                <div class="card hover:shadow-lg transition-shadow">
+                    <div class="flex items-center gap-2 mb-3">
+                        <img src="https://api.dicebear.com/7.x/identicon/svg?seed=pmndrs" class="w-6 h-6 rounded">
+                        <h3 class="font-semibold">pmndrs/zustand</h3>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-4">轻量级状态管理，API简洁易用</p>
+                    <div class="flex items-center gap-4 text-sm text-gray-500 mb-3">
+                        <span class="flex items-center gap-1">⭐ 45K</span>
+                    </div>
+                    <button class="btn btn-outline w-full text-sm">查看详情</button>
+                </div>
+
+                <div class="card hover:shadow-lg transition-shadow">
+                    <div class="flex items-center gap-2 mb-3">
+                        <img src="https://api.dicebear.com/7.x/identicon/svg?seed=pmndrs2" class="w-6 h-6 rounded">
+                        <h3 class="font-semibold">pmndrs/jotai</h3>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-4">原子化状态管理，性能优秀</p>
+                    <div class="flex items-center gap-4 text-sm text-gray-500 mb-3">
+                        <span class="flex items-center gap-1">⭐ 18K</span>
+                    </div>
+                    <button class="btn btn-outline w-full text-sm">查看详情</button>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
