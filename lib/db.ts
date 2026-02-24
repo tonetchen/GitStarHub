@@ -277,6 +277,32 @@ export async function saveRepository(
 }
 
 /**
+ * Get repository by GitHub ID
+ * @param userId - User ID
+ * @param githubRepoId - GitHub repository ID
+ * @returns Repository internal ID or null
+ */
+export async function getRepositoryByGithubId(
+  userId: number,
+  githubRepoId: number
+): Promise<{ id: number } | null> {
+  try {
+    const result = await sql`
+      SELECT id FROM starred_repositories
+      WHERE user_id = ${userId} AND github_repo_id = ${githubRepoId}
+    `;
+
+    if (result.rows.length === 0) {
+      return null;
+    }
+
+    return result.rows[0] as { id: number };
+  } catch (error) {
+    throw new DatabaseError('Failed to get repository by GitHub ID', error as Error);
+  }
+}
+
+/**
  * Save repository update to database
  * @param repositoryId - Repository ID in our database
  * @param update - Update data
@@ -318,6 +344,38 @@ export async function saveRepositoryUpdate(
     `;
   } catch (error) {
     throw new DatabaseError('Failed to save repository update', error as Error);
+  }
+}
+
+/**
+ * Save repository update by GitHub repo ID (convenience function)
+ * @param userId - User ID
+ * @param repoGithubId - GitHub repository ID
+ * @param update - Update data
+ */
+export async function saveRepositoryUpdateByGithubId(
+  userId: number,
+  repoGithubId: number,
+  update: {
+    type: 'commit' | 'release' | 'issue' | 'pr' | 'readme';
+    title: string;
+    description: string | null;
+    url: string;
+    author: string;
+    createdAt: string;
+  }
+): Promise<boolean> {
+  try {
+    const repo = await getRepositoryByGithubId(userId, repoGithubId);
+    if (!repo) {
+      console.warn(`Repository ${repoGithubId} not found for user ${userId}`);
+      return false;
+    }
+
+    await saveRepositoryUpdate(repo.id, update);
+    return true;
+  } catch (error) {
+    throw new DatabaseError('Failed to save repository update by GitHub ID', error as Error);
   }
 }
 
