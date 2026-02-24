@@ -1,9 +1,8 @@
 import { NextAuthOptions } from 'next-auth';
 import GitHubProvider from 'next-auth/providers/github';
-import { createUser, getUserByGithubId, updateUser } from './db';
-import { sql } from '@vercel/postgres';
+import { createUser, getUserByGithubId, getUserWithToken, updateUser } from './db';
 
-// Extended user type for session
+// Extended types for next-auth
 declare module 'next-auth' {
   interface Session {
     user: {
