@@ -95,7 +95,6 @@ Based on the search query, identify the most relevant repositories and explain w
       { role: 'user', content: userPrompt },
     ],
     temperature: 0.7,
-    maxTokens: 1000,
   });
 
   return result;
