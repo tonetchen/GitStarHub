@@ -221,6 +221,11 @@ export async function saveRepository(
   }
 ): Promise<number> {
   try {
+    // Convert topics array to PostgreSQL array format or null
+    const topicsValue = repo.topics.length > 0
+      ? `{${repo.topics.map(t => `"${t.replace(/"/g, '""')}"`).join(',')}}`
+      : null;
+
     const result = await sql`
       INSERT INTO starred_repositories (
         user_id,
@@ -249,7 +254,7 @@ export async function saveRepository(
         ${repo.stargazers_count},
         0,
         0,
-        ${repo.topics.length > 0 ? repo.topics : null},
+        ${topicsValue},
         NOW()
       )
       ON CONFLICT (user_id, github_repo_id)
@@ -444,22 +449,24 @@ export async function getUserRepositories(
   } = {}
 ): Promise<any[]> {
   try {
-    const conditions = ['user_id = ' + userId];
-    const params: any[] = [userId];
+    // Build query based on options
+    let query = `SELECT * FROM starred_repositories WHERE user_id = ${userId}`;
 
     if (options.language) {
-      conditions.push('language = ' + (params.length + 1));
-      params.push(options.language);
+      query += ` AND language = '${options.language.replace(/'/g, "''")}'`;
     }
 
-    const result = await sql`
-      SELECT * FROM starred_repositories
-      WHERE ${conditions.join(' AND ')}
-      ORDER BY starred_at DESC
-      ${options.limit ? sql`LIMIT ${options.limit}` : sql``}
-      ${options.offset ? sql`OFFSET ${options.offset}` : sql``}
-    `;
+    query += ` ORDER BY starred_at DESC`;
 
+    if (options.limit) {
+      query += ` LIMIT ${options.limit}`;
+    }
+
+    if (options.offset) {
+      query += ` OFFSET ${options.offset}`;
+    }
+
+    const result = await sql.query(query);
     return result.rows;
   } catch (error) {
     throw new DatabaseError('Failed to get user repositories', error as Error);
@@ -482,19 +489,8 @@ export async function getUserUpdates(
   } = {}
 ): Promise<any[]> {
   try {
-    const conditions = ['repo_id IN (SELECT id FROM starred_repositories WHERE user_id = ' + userId + ')'];
-    const params: any[] = [];
-
-    if (options.updateType) {
-      conditions.push('update_type = ' + (params.length + 1));
-      params.push(options.updateType);
-    }
-
-    if (options.unreadOnly) {
-      conditions.push('is_read = false');
-    }
-
-    const result = await sql`
+    // Build query based on options
+    let query = `
       SELECT
         ru.*,
         sr.repo_name,
@@ -502,12 +498,28 @@ export async function getUserUpdates(
         sr.owner_login
       FROM repository_updates ru
       JOIN starred_repositories sr ON ru.repo_id = sr.id
-      WHERE ${conditions.join(' AND ')}
-      ORDER BY ru.detected_at DESC
-      ${options.limit ? sql`LIMIT ${options.limit}` : sql``}
-      ${options.offset ? sql`OFFSET ${options.offset}` : sql``}
+      WHERE sr.user_id = ${userId}
     `;
 
+    if (options.updateType) {
+      query += ` AND ru.update_type = '${options.updateType.replace(/'/g, "''")}'`;
+    }
+
+    if (options.unreadOnly) {
+      query += ` AND ru.is_read = false`;
+    }
+
+    query += ` ORDER BY ru.detected_at DESC`;
+
+    if (options.limit) {
+      query += ` LIMIT ${options.limit}`;
+    }
+
+    if (options.offset) {
+      query += ` OFFSET ${options.offset}`;
+    }
+
+    const result = await sql.query(query);
     return result.rows;
   } catch (error) {
     throw new DatabaseError('Failed to get user updates', error as Error);
@@ -521,12 +533,14 @@ export async function getUserUpdates(
  */
 export async function markUpdatesAsRead(userId: number, updateIds: number[]): Promise<void> {
   try {
-    await sql`
+    // Build query with proper array handling
+    const idsList = updateIds.join(',');
+    await sql.query(`
       UPDATE repository_updates
       SET is_read = true
-      WHERE id = ANY(${updateIds})
+      WHERE id = ANY(ARRAY[${idsList}]::int[])
         AND repo_id IN (SELECT id FROM starred_repositories WHERE user_id = ${userId})
-    `;
+    `);
   } catch (error) {
     throw new DatabaseError('Failed to mark updates as read', error as Error);
   }
@@ -558,7 +572,12 @@ export async function getUsersToSync(): Promise<Array<{
         )
     `;
 
-    return result.rows;
+    return result.rows as Array<{
+      id: number;
+      access_token: string;
+      sync_interval_minutes: number;
+      last_sync_at: Date | null;
+    }>;
   } catch (error) {
     throw new DatabaseError('Failed to get users to sync', error as Error);
   }
