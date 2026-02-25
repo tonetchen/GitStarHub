@@ -514,7 +514,7 @@ export async function getUserRepositories(
       query += ` AND language = '${options.language.replace(/'/g, "''")}'`;
     }
 
-    query += ` ORDER BY starred_at DESC`;
+    query += ` ORDER BY created_at DESC`;
 
     if (options.limit) {
       query += ` LIMIT ${options.limit}`;
