@@ -153,7 +153,7 @@ export default function DashboardLayout({
               </Button>
 
               {/* Dropdown Menu */}
-              <div className="absolute right-0 top-full mt-2 w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+              <div className="absolute right-0 top-full pt-2 w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                 <div className="bg-popover border rounded-md shadow-lg p-1">
                   <div className="px-2 py-1.5 border-b mb-1">
                     <p className="text-sm font-medium">
