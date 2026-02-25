@@ -92,9 +92,9 @@ export default function DashboardPage() {
           const data = await response.json();
           setRepositories(data.repositories || []);
           setStats({
-            totalStars: data.stats?.totalStars || data.repositories?.length || 0,
-            weeklyActive: data.stats?.weeklyActive || Math.floor(Math.random() * 20) + 5,
-            todayUpdates: data.stats?.todayUpdates || Math.floor(Math.random() * 10),
+            totalStars: data.stats?.totalStars ?? data.repositories?.length ?? 0,
+            weeklyActive: data.stats?.weeklyActive ?? 0,
+            todayUpdates: data.stats?.todayUpdates ?? 0,
             lastSync: data.stats?.lastSync ? new Date(data.stats.lastSync) : null,
           });
         }
