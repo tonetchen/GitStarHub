@@ -24,7 +24,7 @@ export default function LoginPage() {
         <Button
           variant="outline"
           className="w-full h-11 text-base"
-          onClick={() => signIn("github")}
+          onClick={() => signIn("github", { callbackUrl: "/" })}
         >
           <Github className="size-5" />
           Continue with GitHub
