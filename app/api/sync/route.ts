@@ -47,6 +47,7 @@ export async function POST() {
           headers: {
             Authorization: `Bearer ${accessToken}`,
             Accept: "application/vnd.github.v3+json",
+            "User-Agent": "GitStarHub",
           },
         }
       );
