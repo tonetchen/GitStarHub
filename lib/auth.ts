@@ -85,6 +85,9 @@ export const authOptions: NextAuthOptions = {
             avatar_url: user.image || undefined,
           });
 
+          // Update access token
+          await updateUserAccessToken(existingUser.id, account.access_token);
+
           // Store user ID for later use in session callback
           user.github_id = githubId;
           user.accessToken = account.access_token;

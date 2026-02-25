@@ -401,8 +401,8 @@ export async function updateSyncSettings(
       )
       ON CONFLICT (user_id)
       DO UPDATE SET
-        sync_enabled = COALESCE(EXCLUDED.sync_enabled, sync_enabled),
-        sync_interval_minutes = COALESCE(EXCLUDED.sync_interval_minutes, sync_interval_minutes),
+        sync_enabled = COALESCE(EXCLUDED.sync_enabled, user_sync_settings.sync_enabled),
+        sync_interval_minutes = COALESCE(EXCLUDED.sync_interval_minutes, user_sync_settings.sync_interval_minutes),
         last_sync_at = NOW(),
         updated_at = NOW()
     `;
