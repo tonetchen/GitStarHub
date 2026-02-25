@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { getUserRepositories, getSyncSettings } from "@/lib/db";
+import { sql } from "@vercel/postgres";
 
 export async function GET(request: NextRequest) {
   try {
@@ -28,6 +29,16 @@ export async function GET(request: NextRequest) {
     // Get sync settings for stats
     const syncSettings = await getSyncSettings(userId);
 
+    // Get today's updates count
+    const { rows } = await sql`
+      SELECT COUNT(*) as count 
+      FROM repository_updates ru
+      JOIN starred_repositories sr ON ru.repo_id = sr.id
+      WHERE sr.user_id = ${userId} 
+      AND ru.detected_at >= current_date
+    `;
+    const todayUpdates = parseInt(rows[0].count, 10);
+
     // Calculate stats
     const stats = {
       totalStars: repositories.length,
@@ -37,7 +48,7 @@ export async function GET(request: NextRequest) {
         weekAgo.setDate(weekAgo.getDate() - 7);
         return updatedAt > weekAgo;
       }).length,
-      todayUpdates: 0, // Would need to query updates table
+      todayUpdates,
       lastSync: syncSettings?.last_sync_at || null,
     };
 

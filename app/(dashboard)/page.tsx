@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useSession } from "next-auth/react";
 import {
   Star,
@@ -221,7 +222,6 @@ export default function DashboardPage() {
           value={stats.totalStars}
           description="starred repositories"
           icon={<Star className="h-4 w-4 text-muted-foreground" />}
-          trend={{ value: 12, isPositive: true }}
         />
         <StatCard
           title="Weekly Active"
@@ -229,13 +229,14 @@ export default function DashboardPage() {
           description="repos with updates this week"
           icon={<TrendingUp className="h-4 w-4 text-muted-foreground" />}
         />
-        <StatCard
-          title="Today&apos;s Updates"
-          value={stats.todayUpdates}
-          description="new updates today"
-          icon={<Clock className="h-4 w-4 text-muted-foreground" />}
-          trend={{ value: 5, isPositive: true }}
-        />
+        <Link href="/updates" className="block transition-transform hover:scale-105">
+          <StatCard
+            title="Today&apos;s Updates"
+            value={stats.todayUpdates}
+            description="new updates today"
+            icon={<Clock className="h-4 w-4 text-muted-foreground" />}
+          />
+        </Link>
         <StatCard
           title="Last Sync"
           value={formatLastSync(stats.lastSync)}
