@@ -115,7 +115,7 @@ Respond ONLY with the JSON object of up to 10 most relevant matches.`;
             
             // Map the parsed IDs back to actual repository objects
             const aiResults = parsed
-              .map((item: any) => {
+              .map((item: Record<string, unknown>) => {
                 // GLM sometimes hallucinates keys like "ID" instead of "id"
                 const rawId = item.id || item.ID || item.Id;
                 const rawReason = item.relevanceReason || item.RelevanceReason || item.reason || "AI matched";
@@ -140,17 +140,20 @@ Respond ONLY with the JSON object of up to 10 most relevant matches.`;
             if (aiResults.length > 0) {
               return NextResponse.json({ results: aiResults });
             }
-          } catch (parseError: any) {
+          } catch (parseError: unknown) {
             console.error("Failed to parse JSON out of AI response:", parseError, content);
-            throw new Error(`Parse error: ${parseError.message} | Content: ${content}`);
+            const msg = parseError instanceof Error ? parseError.message : String(parseError);
+            throw new Error(`Parse error: ${msg} | Content: ${content}`);
           }
         } else {
           const errorText = await response.text();
           console.error("AI enhancement failed, HTTP status:", response.status, errorText);
           throw new Error(`HTTP ${response.status}: ${errorText} (URL: ${baseURL}, Model: ${model})`);
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error("AI search crashed, falling back to basic search:", error);
+        
+        const errorMessage = error instanceof Error ? error.message : String(error);
         
         // Return the error directly to the frontend for diagnosis since we are debugging live
         return NextResponse.json({ 
@@ -159,7 +162,7 @@ Respond ONLY with the JSON object of up to 10 most relevant matches.`;
             repo_name: "DEBUG",
             owner_login: "SYSTEM",
             repo_full_name: "SYSTEM_ERROR/AI_FAILED",
-            description: `The AI backend encountered an error and crashed. Details: ${error.message}`,
+            description: `The AI backend encountered an error and crashed. Details: ${errorMessage}`,
             language: "Error",
             stargazers_count: 0,
             relevanceReason: "Diagnostic Error Message",
