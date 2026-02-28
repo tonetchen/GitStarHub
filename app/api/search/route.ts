@@ -58,13 +58,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Try AI search first if API key is configured
-    const apiKey = process.env.GLM_API_KEY || process.env.OPENAI_API_KEY;
-    const baseURL = process.env.GLM_API_KEY ? "https://open.bigmodel.cn/api/paas/v4" : (process.env.OPENAI_BASE_URL || "https://api.openai.com/v1");
-    let defaultModel = "gpt-4o-mini";
-    if (baseURL.includes("bigmodel.cn")) {
-      defaultModel = "glm-4";
-    }
-    const model = process.env.GLM_API_KEY ? "glm-4" : (process.env.OPENAI_MODEL || defaultModel); // fallback model
+    const apiKey = process.env.OPENAI_API_KEY;
+    const baseURL = process.env.OPENAI_BASE_URL || "https://api.openai.com/v1";
+    const model = process.env.OPENAI_MODEL || "glm-4";
     
     if (apiKey) {
       try {
