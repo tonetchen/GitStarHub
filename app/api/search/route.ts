@@ -62,9 +62,9 @@ export async function POST(request: NextRequest) {
     const baseURL = process.env.GLM_API_KEY ? "https://open.bigmodel.cn/api/paas/v4" : (process.env.OPENAI_BASE_URL || "https://api.openai.com/v1");
     let defaultModel = "gpt-4o-mini";
     if (baseURL.includes("bigmodel.cn")) {
-      defaultModel = "glm-4-flash";
+      defaultModel = "glm-4";
     }
-    const model = process.env.GLM_API_KEY ? "glm-4-flash" : (process.env.OPENAI_MODEL || defaultModel); // fallback model
+    const model = process.env.GLM_API_KEY ? "glm-4" : (process.env.OPENAI_MODEL || defaultModel); // fallback model
     
     if (apiKey) {
       try {
@@ -113,12 +113,16 @@ Respond ONLY with the JSON array of up to 10 most relevant matches.`;
           // Try to parse JSON from the response
           const jsonMatch = content.match(/\[[\s\S]*\]/);
           if (jsonMatch) {
-            const parsed = JSON.parse(jsonMatch[0]) as Array<{ id: string | number; relevanceReason: string }>;
+            const parsed = JSON.parse(jsonMatch[0]) as Array<any>;
             
             // Map the parsed IDs back to actual repository objects
             const aiResults = parsed
               .map(item => {
-                const repo = (repositories as RepoData[]).find(r => r.id === Number(item.id));
+                // GLM sometimes hallucinates keys like "ID" instead of "id"
+                const rawId = item.id || item.ID || item.Id;
+                const rawReason = item.relevanceReason || item.RelevanceReason || item.reason || "AI matched";
+                
+                const repo = (repositories as RepoData[]).find(r => r.id === Number(rawId));
                 if (repo) {
                   return {
                     id: repo.id,
@@ -128,7 +132,7 @@ Respond ONLY with the JSON array of up to 10 most relevant matches.`;
                     description: repo.description,
                     language: repo.language,
                     stargazers_count: repo.stargazers_count,
-                    relevanceReason: item.relevanceReason,
+                    relevanceReason: rawReason,
                   };
                 }
                 return null;
