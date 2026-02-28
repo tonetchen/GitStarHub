@@ -62,9 +62,9 @@ export async function POST(request: NextRequest) {
     const baseURL = process.env.GLM_API_KEY ? "https://open.bigmodel.cn/api/paas/v4" : (process.env.OPENAI_BASE_URL || "https://api.openai.com/v1");
     let defaultModel = "gpt-4o-mini";
     if (baseURL.includes("bigmodel.cn")) {
-      defaultModel = "glm-4";
+      defaultModel = "glm-4-flash";
     }
-    const model = process.env.GLM_API_KEY ? "glm-4" : (process.env.OPENAI_MODEL || defaultModel); // fallback model
+    const model = process.env.GLM_API_KEY ? "glm-4-flash" : (process.env.OPENAI_MODEL || defaultModel); // fallback model
     
     if (apiKey) {
       try {
@@ -149,7 +149,12 @@ Respond ONLY with the JSON array of up to 10 most relevant matches.`;
 
     // Fallback: Simple keyword matching search
     const queryLower = query.toLowerCase();
-    const queryTerms = queryLower.split(/\s+/);
+    
+    // Split on whitespace or any individual Chinese character to properly handle Chinese sentences
+    const queryTerms = queryLower
+      .replace(/[\u4e00-\u9fa5]/g, ' $& ') // Add spaces around Chinese characters
+      .split(/\s+/)
+      .filter(t => t.length > 0 && !["我", "想", "要", "的", "有", "么", "个", "这", "那", "是", "在"].includes(t)); // Basic stop words filter
 
     const results: SearchResult[] = (repositories as RepoData[])
       .map((repo) => {
