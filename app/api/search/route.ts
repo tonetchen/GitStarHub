@@ -78,17 +78,17 @@ export async function POST(request: NextRequest) {
 
         const systemPrompt = `You are an intelligent repository search assistant. Find the most relevant repositories from the provided list based on the user's search query.
 Focus on semantic meaning and intent, not just exact keyword matching (e.g., if user asks for "intelligent agent", recommend langchain, autogen, etc.).
-IMPORTANT: You MUST return ONLY a valid JSON array. Each object in the array must have:
+IMPORTANT: You MUST return a JSON object with a 'results' array. Each object in the array must have:
 - "id": the numeric ID of the matching repository
 - "relevanceReason": a brief, precise explanation in the user's language of why it matches (max 15 words)
-If no repositories are relevant, return [].`;
+If no repositories are relevant, return {"results": []}.`;
 
         const userPrompt = `Search Query: "${query}"
 
 Available Repositories (Format: ID|Name|Desc|Topics):
 ${repoContext}
 
-Respond ONLY with the JSON array of up to 10 most relevant matches.`;
+Respond ONLY with the JSON object of up to 10 most relevant matches.`;
 
         const response = await fetch(`${baseURL}/chat/completions`, {
           method: "POST",
@@ -98,6 +98,7 @@ Respond ONLY with the JSON array of up to 10 most relevant matches.`;
           },
           body: JSON.stringify({
             model: model,
+            response_format: { type: "json_object" },
             messages: [
               { role: "system", content: systemPrompt },
               { role: "user", content: userPrompt },
@@ -108,16 +109,15 @@ Respond ONLY with the JSON array of up to 10 most relevant matches.`;
 
         if (response.ok) {
           const data = await response.json();
-          const content = data.choices?.[0]?.message?.content || "[]";
+          const content = data.choices?.[0]?.message?.content || '{"results": []}';
           
-          // Try to parse JSON from the response
-          const jsonMatch = content.match(/\[[\s\S]*\]/);
-          if (jsonMatch) {
-            const parsed = JSON.parse(jsonMatch[0]) as Array<any>;
+          try {
+            const parsedToken = JSON.parse(content);
+            const parsed = Array.isArray(parsedToken.results) ? parsedToken.results : (Array.isArray(parsedToken) ? parsedToken : []);
             
             // Map the parsed IDs back to actual repository objects
             const aiResults = parsed
-              .map(item => {
+              .map((item: any) => {
                 // GLM sometimes hallucinates keys like "ID" instead of "id"
                 const rawId = item.id || item.ID || item.Id;
                 const rawReason = item.relevanceReason || item.RelevanceReason || item.reason || "AI matched";
@@ -142,6 +142,8 @@ Respond ONLY with the JSON array of up to 10 most relevant matches.`;
             if (aiResults.length > 0) {
               return NextResponse.json({ results: aiResults });
             }
+          } catch (parseError) {
+            console.error("Failed to parse JSON out of AI response:", parseError, content);
           }
         } else {
           console.error("AI enhancement failed, HTTP status:", response.status, await response.text());
