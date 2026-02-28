@@ -142,14 +142,32 @@ Respond ONLY with the JSON object of up to 10 most relevant matches.`;
             if (aiResults.length > 0) {
               return NextResponse.json({ results: aiResults });
             }
-          } catch (parseError) {
+          } catch (parseError: any) {
             console.error("Failed to parse JSON out of AI response:", parseError, content);
+            throw new Error(`Parse error: ${parseError.message} | Content: ${content}`);
           }
         } else {
-          console.error("AI enhancement failed, HTTP status:", response.status, await response.text());
+          const errorText = await response.text();
+          console.error("AI enhancement failed, HTTP status:", response.status, errorText);
+          throw new Error(`HTTP ${response.status}: ${errorText} (URL: ${baseURL}, Model: ${model})`);
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error("AI search crashed, falling back to basic search:", error);
+        
+        // Return the error directly to the frontend for diagnosis since we are debugging live
+        return NextResponse.json({ 
+          results: [{
+            id: -999,
+            repo_name: "DEBUG",
+            owner_login: "SYSTEM",
+            repo_full_name: "SYSTEM_ERROR/AI_FAILED",
+            description: `The AI backend encountered an error and crashed. Details: ${error.message}`,
+            language: "Error",
+            stargazers_count: 0,
+            relevanceReason: "Diagnostic Error Message",
+            score: 0
+          }]
+        });
       }
     }
 
