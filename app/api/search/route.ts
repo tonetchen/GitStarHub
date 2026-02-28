@@ -77,8 +77,10 @@ export async function POST(request: NextRequest) {
           .join('\n');
 
         const systemPrompt = `You are an intelligent repository search assistant. Find the most relevant repositories from the provided list based on the user's search query.
-Focus on semantic meaning and intent, not just exact keyword matching (e.g., if user asks for "intelligent agent", recommend langchain, autogen, etc.).
-IMPORTANT: You MUST return a JSON object with a 'results' array. Each object in the array must have:
+CRITICAL INSTRUCTIONS:
+1. FIRST, heavily prioritize exact or partial matches in the 'Name' or 'Topics' fields. If the user searches for a specific framework or tool (like "langchain"), you MUST prioritize any repositories that contain that word or directly related ecosystem tools (like "langflow") in their name or description over broad semantic concepts.
+2. Only rely on semantic meaning if no direct name or topic matches exist.
+3. You MUST return a JSON object with a 'results' array. Each object in the array must have:
 - "id": the numeric ID of the matching repository
 - "relevanceReason": a brief, precise explanation in the user's language of why it matches (max 15 words)
 If no repositories are relevant, return {"results": []}.`;
