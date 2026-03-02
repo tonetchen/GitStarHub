@@ -334,7 +334,7 @@ export class GitHubClient {
     page: number = 1,
     perPage: number = 30
   ): Promise<PaginatedResponse<GitHubRepository>> {
-    const { data, rateLimit } = await request<GitHubRepository[]>(
+    const { data, rateLimit } = await this.request<GitHubRepository[]>(
       `/user/starred?page=${page}&per_page=${Math.min(perPage, 100)}&sort=created&direction=desc`,
       {
         headers: {
@@ -516,36 +516,4 @@ export function createGitHubClient(accessToken: string): GitHubClient {
   return new GitHubClient(accessToken);
 }
 
-// Helper function for fetch with authorization
-async function request<T>(
-  input: string | URL | globalThis.Request,
-  init?: RequestInit
-): Promise<{ data: T; rateLimit: GitHubRateLimit | null }> {
-  const response = await fetch(input, init);
 
-  const rateLimit: GitHubRateLimit | null = response.headers.get('x-ratelimit-remaining')
-    ? {
-        limit: parseInt(response.headers.get('x-ratelimit-limit') || '0', 10),
-        remaining: parseInt(response.headers.get('x-ratelimit-remaining') || '0', 10),
-        reset: parseInt(response.headers.get('x-ratelimit-reset') || '0', 10),
-        used: parseInt(response.headers.get('x-ratelimit-used') || '0', 10),
-      }
-    : null;
-
-  if (!response.ok) {
-    const errorBody = await response.text();
-    let errorMessage = `GitHub API error: ${response.status}`;
-
-    try {
-      const errorJson = JSON.parse(errorBody);
-      errorMessage = errorJson.message || errorMessage;
-    } catch {
-      // Use default error message
-    }
-
-    throw new GitHubApiError(errorMessage, response.status, rateLimit);
-  }
-
-  const data = await response.json();
-  return { data, rateLimit };
-}
