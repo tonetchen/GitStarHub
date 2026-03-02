@@ -120,7 +120,7 @@ export default function DashboardPage() {
   const handleSync = async () => {
     setIsSyncing(true);
     try {
-      const response = await fetch("/api/sync", { method: "POST" });
+      const response = await fetch("/api/sync/manual", { method: "POST" });
       if (response.ok) {
         // Refresh repositories after sync
         const reposResponse = await fetch("/api/repositories");
