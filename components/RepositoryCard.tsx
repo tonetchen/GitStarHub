@@ -112,19 +112,19 @@ export function RepositoryCard({ repository, showOwner = true }: RepositoryCardP
   return (
     <Card className="group hover:shadow-md transition-shadow duration-200">
       <CardHeader className="pb-2">
-        <div className="flex items-start justify-between gap-2">
+        <div className="flex items-start justify-between gap-2 min-w-0">
           <div className="flex-1 min-w-0">
-            <CardTitle className="text-base font-semibold">
+            <CardTitle className="text-base font-semibold truncate">
               <Link
                 href={`/repositories/${repository.id}`}
-                className="text-primary hover:underline block truncate min-w-0"
+                className="text-primary hover:underline block truncate w-full overflow-hidden text-ellipsis"
               >
                 {showOwner ? (
-                  <span className="truncate">
+                  <span className="inline-block max-w-full truncate">
                     <span className="text-muted-foreground font-normal">
                       {owner_login}/
                     </span>
-                    {repo_name}
+                    <span className="truncate">{repo_name}</span>
                   </span>
                 ) : (
                   repo_name
