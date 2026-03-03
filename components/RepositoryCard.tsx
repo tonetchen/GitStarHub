@@ -117,15 +117,15 @@ export function RepositoryCard({ repository, showOwner = true }: RepositoryCardP
             <CardTitle className="text-base font-semibold">
               <Link
                 href={`/repositories/${repository.id}`}
-                className="text-primary hover:underline block truncate"
+                className="text-primary hover:underline block truncate min-w-0"
               >
                 {showOwner ? (
-                  <>
+                  <span className="truncate">
                     <span className="text-muted-foreground font-normal">
                       {owner_login}/
                     </span>
                     {repo_name}
-                  </>
+                  </span>
                 ) : (
                   repo_name
                 )}
