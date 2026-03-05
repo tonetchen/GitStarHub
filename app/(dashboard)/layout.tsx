@@ -14,7 +14,6 @@ import {
   X,
   Github,
   LayoutDashboard,
-  RefreshCw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -121,12 +120,6 @@ export default function DashboardLayout({
 
           {/* Right Side */}
           <div className="flex items-center gap-2 ml-auto">
-            {/* Sync Button */}
-            <Button variant="outline" size="sm" className="gap-2 hidden sm:flex">
-              <RefreshCw className="size-4" />
-              Sync Stars
-            </Button>
-
             {/* GitHub Link */}
             <Button variant="ghost" size="icon" asChild>
               <a

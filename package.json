@@ -17,6 +17,7 @@
     "@radix-ui/react-slot": "^1.2.4",
     "@radix-ui/react-switch": "^1.2.6",
     "@radix-ui/react-tabs": "^1.1.13",
+    "@vercel/analytics": "^1.6.1",
     "@vercel/postgres": "^0.10.0",
     "ai": "^6.0.97",
     "bcryptjs": "^3.0.3",
