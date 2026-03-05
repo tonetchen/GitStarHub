@@ -75,6 +75,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Transform repositories for AI context
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const reposForAI: RepositoryForAI[] = repositories.map((repo: any) => ({
       id: repo.id,
       repo_name: repo.repo_name,
