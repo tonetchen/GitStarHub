@@ -51,7 +51,7 @@ function createAIClient(baseURL?: string, apiKey?: string) {
 export async function searchWithAI(
   query: string,
   repositories: RepositoryForAI[],
-  modelName: string = 'glm-4.7'
+  modelName: string = 'deepseek-chat'
 ) {
   const client = createAIClient();
 
@@ -111,7 +111,7 @@ Based on the search query, identify the most relevant repositories and explain w
 export async function getStructuredSearchResults(
   query: string,
   repositories: RepositoryForAI[],
-  modelName: string = 'glm-4.7'
+  modelName: string = 'deepseek-chat'
 ): Promise<AISearchResult[]> {
   const client = createAIClient();
 
@@ -213,7 +213,7 @@ export function isAIConfigured(): boolean {
  * @returns List of available model names
  */
 export function getAvailableModels(): string[] {
-  return ['glm-4.7', 'glm-4', 'glm-4-flash', 'gpt-4', 'gpt-3.5-turbo'];
+  return ['deepseek-chat', 'glm-4.7', 'glm-4', 'glm-4-flash', 'gpt-4', 'gpt-3.5-turbo'];
 }
 
 /**
@@ -225,5 +225,5 @@ export function getDefaultModel(preferredModel?: string): string {
   if (preferredModel && getAvailableModels().includes(preferredModel)) {
     return preferredModel;
   }
-  return 'glm-4.7';
+  return 'deepseek-chat';
 }
