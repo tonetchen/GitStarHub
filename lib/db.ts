@@ -505,6 +505,7 @@ export async function getUserRepositories(
     offset?: number;
     language?: string;
   } = {}
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): Promise<any[]> {
   try {
     // Build query based on options
@@ -545,6 +546,7 @@ export async function getUserUpdates(
     updateType?: string;
     unreadOnly?: boolean;
   } = {}
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): Promise<any[]> {
   try {
     // Build query based on options
