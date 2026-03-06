@@ -28,6 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { DEFAULT_AI_MODEL, SUPPORTED_AI_MODELS, AI_MODEL_LABELS } from "@/lib/ai-config";
 
 // Settings types
 interface SyncSettings {
@@ -40,15 +41,11 @@ interface AiSettings {
   preferredModel: string;
 }
 
-// Available AI models
-const AI_MODELS = [
-  { value: "deepseek-chat", label: "DeepSeek Chat (Recommended)" },
-  { value: "glm-4", label: "GLM-4" },
-  { value: "glm-4-flash", label: "GLM-4 Flash (Faster)" },
-  { value: "gpt-4", label: "GPT-4" },
-  { value: "gpt-3.5-turbo", label: "GPT-3.5 Turbo" },
-  { value: "claude-3", label: "Claude 3" },
-];
+// Available AI models from config
+const AI_MODELS = SUPPORTED_AI_MODELS.map(model => ({
+  value: model,
+  label: AI_MODEL_LABELS[model] || model,
+}));
 
 // Sync interval options
 const SYNC_INTERVALS = [
@@ -77,7 +74,7 @@ export default function SettingsPage() {
 
   // AI settings state
   const [aiSettings, setAiSettings] = useState<AiSettings>({
-    preferredModel: "deepseek-chat",
+    preferredModel: DEFAULT_AI_MODEL,
   });
 
   // Fetch current settings
@@ -103,7 +100,7 @@ export default function SettingsPage() {
         if (aiResponse.ok) {
           const aiData = await aiResponse.json();
           setAiSettings({
-            preferredModel: aiData.preferredModel ?? "deepseek-chat",
+            preferredModel: aiData.preferredModel ?? DEFAULT_AI_MODEL,
           });
         }
       } catch (error) {

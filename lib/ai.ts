@@ -5,6 +5,7 @@
 
 import { createOpenAI } from '@ai-sdk/openai';
 import { streamText } from 'ai';
+import { DEFAULT_AI_MODEL, getDefaultModel as getConfiguredDefaultModel, isModelSupported } from './ai-config';
 
 // Repository data structure for AI context
 export interface RepositoryForAI {
@@ -51,7 +52,7 @@ function createAIClient(baseURL?: string, apiKey?: string) {
 export async function searchWithAI(
   query: string,
   repositories: RepositoryForAI[],
-  modelName: string = 'deepseek-chat'
+  modelName: string = DEFAULT_AI_MODEL
 ) {
   const client = createAIClient();
 
@@ -111,7 +112,7 @@ Based on the search query, identify the most relevant repositories and explain w
 export async function getStructuredSearchResults(
   query: string,
   repositories: RepositoryForAI[],
-  modelName: string = 'deepseek-chat'
+  modelName: string = DEFAULT_AI_MODEL
 ): Promise<AISearchResult[]> {
   const client = createAIClient();
 
@@ -213,15 +214,15 @@ export function isAIConfigured(): boolean {
  * @returns List of available model names
  */
 export function getAvailableModels(): string[] {
-  return ['deepseek-chat', 'glm-4.7', 'glm-4', 'glm-4-flash', 'gpt-4', 'gpt-3.5-turbo'];
+  return [...SUPPORTED_AI_MODELS];
 }
 
 /**
  * Get default model based on configuration
- * @param preferredModel - User's preferred model (ignored, always returns deepseek-chat)
+ * @param preferredModel - User's preferred model (ignored, uses global config)
  * @returns Model name to use
  */
 export function getDefaultModel(preferredModel?: string): string {
-  // Always use deepseek-chat - hardcoded
-  return 'deepseek-chat';
+  // Use global configuration
+  return getConfiguredDefaultModel();
 }

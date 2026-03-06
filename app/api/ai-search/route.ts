@@ -8,10 +8,8 @@ import { getServerSession } from 'next-auth';
 import { streamText } from 'ai';
 import { authOptions } from '@/lib/auth';
 import { getUserRepositories } from '@/lib/db';
-import {
-  isAIConfigured,
-  RepositoryForAI,
-} from '@/lib/ai';
+import { isAIConfigured, RepositoryForAI } from '@/lib/ai';
+import { DEFAULT_AI_MODEL } from '@/lib/ai-config';
 
 // Create OpenAI-compatible client
 function createOpenAIClient() {
@@ -59,8 +57,8 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Use hardcoded model - deepseek-chat
-    const modelName = 'deepseek-chat';
+    // Use configured default model
+    const modelName = DEFAULT_AI_MODEL;
 
     // Get user repositories
     const repositories = await getUserRepositories(userId, { limit: 100 });
