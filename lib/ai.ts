@@ -5,7 +5,7 @@
 
 import { createOpenAI } from '@ai-sdk/openai';
 import { streamText } from 'ai';
-import { DEFAULT_AI_MODEL, getDefaultModel as getConfiguredDefaultModel } from './ai-config';
+import { DEFAULT_AI_MODEL } from './ai-config';
 
 // Repository data structure for AI context
 export interface RepositoryForAI {
@@ -223,5 +223,5 @@ export function getAvailableModels(): string[] {
  */
 export function getDefaultModel(): string {
   // Use global configuration
-  return getConfiguredDefaultModel();
+  return DEFAULT_AI_MODEL;
 }
