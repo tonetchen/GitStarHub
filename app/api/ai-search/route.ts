@@ -5,7 +5,6 @@
 
 import { NextRequest } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { streamText } from 'ai';
 import { authOptions } from '@/lib/auth';
 import { getUserRepositories } from '@/lib/db';
 import { isAIConfigured, RepositoryForAI } from '@/lib/ai';
