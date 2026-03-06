@@ -81,8 +81,9 @@ export async function PUT(request: NextRequest) {
     });
   } catch (error) {
     console.error("Error updating AI settings:", error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
     return NextResponse.json(
-      { error: "Failed to update AI settings" },
+      { error: "Failed to update AI settings", details: errorMessage },
       { status: 500 }
     );
   }
