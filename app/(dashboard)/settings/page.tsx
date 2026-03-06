@@ -42,7 +42,8 @@ interface AiSettings {
 
 // Available AI models
 const AI_MODELS = [
-  { value: "glm-4", label: "GLM-4 (Recommended)" },
+  { value: "deepseek-chat", label: "DeepSeek Chat (Recommended)" },
+  { value: "glm-4", label: "GLM-4" },
   { value: "glm-4-flash", label: "GLM-4 Flash (Faster)" },
   { value: "gpt-4", label: "GPT-4" },
   { value: "gpt-3.5-turbo", label: "GPT-3.5 Turbo" },
@@ -76,7 +77,7 @@ export default function SettingsPage() {
 
   // AI settings state
   const [aiSettings, setAiSettings] = useState<AiSettings>({
-    preferredModel: "glm-4",
+    preferredModel: "deepseek-chat",
   });
 
   // Fetch current settings
@@ -102,7 +103,7 @@ export default function SettingsPage() {
         if (aiResponse.ok) {
           const aiData = await aiResponse.json();
           setAiSettings({
-            preferredModel: aiData.preferredModel ?? "glm-4",
+            preferredModel: aiData.preferredModel ?? "deepseek-chat",
           });
         }
       } catch (error) {
@@ -295,8 +296,11 @@ export default function SettingsPage() {
             <p className="font-medium mb-2">Model Information:</p>
             <ul className="space-y-1 text-muted-foreground">
               <li>
-                <strong>GLM-4</strong> - Best balance of speed and accuracy for
-                repository analysis
+                <strong>DeepSeek Chat</strong> - Best balance of speed and accuracy for
+                repository analysis (Recommended)
+              </li>
+              <li>
+                <strong>GLM-4</strong> - Good for Chinese language queries
               </li>
               <li>
                 <strong>GLM-4 Flash</strong> - Faster responses, ideal for

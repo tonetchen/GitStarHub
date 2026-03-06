@@ -5,6 +5,7 @@ import { getAiSettings, updateAiSettings } from "@/lib/db";
 
 // List of supported AI models
 const SUPPORTED_MODELS = [
+  "deepseek-chat",
   "glm-4",
   "glm-4-flash",
   "gpt-4",
@@ -29,7 +30,7 @@ export async function GET() {
 
     // Return default settings if none exist
     return NextResponse.json({
-      preferredModel: settings?.preferred_model ?? "glm-4",
+      preferredModel: settings?.preferred_model ?? "deepseek-chat",
     });
   } catch (error) {
     console.error("Error fetching AI settings:", error);
@@ -56,7 +57,7 @@ export async function PUT(request: NextRequest) {
     const body = await request.json();
 
     // Validate input
-    const preferredModel = body.preferredModel ?? "glm-4";
+    const preferredModel = body.preferredModel ?? "deepseek-chat";
 
     // Validate model is supported
     if (!SUPPORTED_MODELS.includes(preferredModel)) {

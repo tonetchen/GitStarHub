@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
     // Try AI search first if API key is configured
     const apiKey = process.env.OPENAI_API_KEY;
     const baseURL = process.env.OPENAI_BASE_URL || "https://api.openai.com/v1";
-    const model = process.env.OPENAI_MODEL || "glm-4";
+    const model = process.env.OPENAI_MODEL || "deepseek-chat";
     
     if (apiKey) {
       try {

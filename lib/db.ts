@@ -456,7 +456,7 @@ export async function updateAiSettings(
   try {
     await sql`
       INSERT INTO user_ai_settings (user_id, preferred_model)
-      VALUES (${userId}, ${settings.preferredModel ?? 'glm-4'})
+      VALUES (${userId}, ${settings.preferredModel ?? 'deepseek-chat'})
       ON CONFLICT (user_id)
       DO UPDATE SET
         preferred_model = COALESCE(EXCLUDED.preferred_model, preferred_model),
