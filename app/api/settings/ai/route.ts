@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { getAiSettings, updateAiSettings } from "@/lib/db";
+
+// Hardcoded model - no database
+const HARDCODED_MODEL = "deepseek-chat";
 
 // List of supported AI models
 const SUPPORTED_MODELS = [
@@ -15,7 +17,7 @@ const SUPPORTED_MODELS = [
 
 /**
  * GET /api/settings/ai
- * Get user's AI settings
+ * Get user's AI settings (hardcoded)
  */
 export async function GET() {
   try {
@@ -25,12 +27,9 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const userId = parseInt(session.user.id, 10);
-    const settings = await getAiSettings(userId);
-
-    // Return default settings if none exist
+    // Return hardcoded model
     return NextResponse.json({
-      preferredModel: settings?.preferred_model ?? "deepseek-chat",
+      preferredModel: HARDCODED_MODEL,
     });
   } catch (error) {
     console.error("Error fetching AI settings:", error);
@@ -43,7 +42,7 @@ export async function GET() {
 
 /**
  * PUT /api/settings/ai
- * Update user's AI settings
+ * Update user's AI settings (no-op, always returns hardcoded model)
  */
 export async function PUT(request: NextRequest) {
   try {
@@ -53,11 +52,8 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const userId = parseInt(session.user.id, 10);
     const body = await request.json();
-
-    // Validate input
-    const preferredModel = body.preferredModel ?? "deepseek-chat";
+    const preferredModel = body.preferredModel ?? HARDCODED_MODEL;
 
     // Validate model is supported
     if (!SUPPORTED_MODELS.includes(preferredModel)) {
@@ -67,17 +63,10 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // Update settings
-    await updateAiSettings(userId, {
-      preferredModel,
-    });
-
-    // Fetch and return updated settings
-    const updatedSettings = await getAiSettings(userId);
-
+    // Always return hardcoded model (no database update)
     return NextResponse.json({
       success: true,
-      preferredModel: updatedSettings?.preferred_model ?? preferredModel,
+      preferredModel: HARDCODED_MODEL,
     });
   } catch (error) {
     console.error("Error updating AI settings:", error);

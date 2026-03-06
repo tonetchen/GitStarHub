@@ -218,12 +218,10 @@ export function getAvailableModels(): string[] {
 
 /**
  * Get default model based on configuration
- * @param preferredModel - User's preferred model
+ * @param preferredModel - User's preferred model (ignored, always returns deepseek-chat)
  * @returns Model name to use
  */
 export function getDefaultModel(preferredModel?: string): string {
-  if (preferredModel && getAvailableModels().includes(preferredModel)) {
-    return preferredModel;
-  }
+  // Always use deepseek-chat - hardcoded
   return 'deepseek-chat';
 }
