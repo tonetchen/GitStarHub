@@ -5,7 +5,7 @@
 
 import { createOpenAI } from '@ai-sdk/openai';
 import { streamText } from 'ai';
-import { DEFAULT_AI_MODEL } from './ai-config';
+import { DEFAULT_AI_MODEL, SUPPORTED_AI_MODELS } from './ai-config';
 
 // Repository data structure for AI context
 export interface RepositoryForAI {
