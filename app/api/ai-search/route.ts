@@ -9,7 +9,7 @@ import { streamText } from 'ai';
 import { authOptions } from '@/lib/auth';
 import { getUserRepositories } from '@/lib/db';
 import { isAIConfigured, RepositoryForAI } from '@/lib/ai';
-import { DEFAULT_AI_MODEL } from '@/lib/ai-config';
+import { DEFAULT_AI_MODEL } from "@/lib/ai-config";
 
 // Create OpenAI-compatible client
 function createOpenAIClient() {
