@@ -235,7 +235,7 @@ export default function DashboardPage() {
           <StatCard
             title="Today&apos;s Updates"
             value={stats.todayUpdates}
-            description="new updates today"
+            description="repos with updates today"
             icon={<Clock className="h-4 w-4 text-muted-foreground" />}
           />
         </Link>

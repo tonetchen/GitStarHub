@@ -587,6 +587,56 @@ export async function getUserUpdates(
 }
 
 /**
+ * Get count of recent updates for user, grouped by type
+ * @param userId - User ID
+ * @param options - Query options
+ * @returns Object with total and counts by type
+ */
+export async function getUserUpdatesCount(
+  userId: number,
+  options: {
+    unreadOnly?: boolean;
+  } = {}
+): Promise<{ total: number; byType: Record<string, number> }> {
+  try {
+    let baseQuery = `
+      SELECT ru.update_type, COUNT(*) as count
+      FROM repository_updates ru
+      JOIN starred_repositories sr ON ru.repo_id = sr.id
+      WHERE sr.user_id = ${userId}
+    `;
+
+    if (options.unreadOnly) {
+      baseQuery += ` AND ru.is_read = false`;
+    }
+
+    baseQuery += ` GROUP BY ru.update_type`;
+
+    const result = await sql.query(baseQuery);
+    
+    const byType: Record<string, number> = {
+      commit: 0,
+      issue: 0,
+      pr: 0,
+      release: 0,
+      readme: 0
+    };
+    
+    let total = 0;
+    
+    for (const row of result.rows) {
+      const count = parseInt(row.count, 10);
+      byType[row.update_type] = count;
+      total += count;
+    }
+
+    return { total, byType };
+  } catch (error) {
+    throw new DatabaseError('Failed to get user updates count', error as Error);
+  }
+}
+
+/**
  * Mark updates as read
  * @param userId - User ID
  * @param updateIds - Update IDs to mark as read

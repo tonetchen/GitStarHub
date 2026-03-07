@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
 
     // Get today's updates count
     const { rows: todayRows } = await sql`
-      SELECT COUNT(*) as count 
+      SELECT COUNT(DISTINCT sr.id) as count 
       FROM repository_updates ru
       JOIN starred_repositories sr ON ru.repo_id = sr.id
       WHERE sr.user_id = ${userId} 

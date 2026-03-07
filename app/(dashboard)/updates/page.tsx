@@ -7,7 +7,6 @@ import {
   GitCommit,
   CircleDot,
   GitPullRequest,
-  Filter,
   Loader2,
   ChevronLeft,
   ChevronRight,
@@ -16,13 +15,6 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { UpdateItemCard, UpdateItem, UpdateType } from "@/components/UpdateItem";
 
 type FilterType = "all" | UpdateType;
@@ -35,6 +27,7 @@ interface UpdatesResponse {
     total: number;
     totalPages: number;
   };
+  counts?: Record<string, number>;
 }
 
 const filterOptions: { value: FilterType; label: string; icon: React.ReactNode }[] = [
@@ -57,6 +50,7 @@ export default function UpdatesPage() {
     total: 0,
     totalPages: 0,
   });
+  const [counts, setCounts] = useState<Record<string, number> | null>(null);
 
   const fetchUpdates = useCallback(async () => {
     if (!session?.user?.id) return;
@@ -80,6 +74,9 @@ export default function UpdatesPage() {
           total: 0,
           totalPages: 0,
         });
+        if (data.counts) {
+          setCounts(data.counts);
+        }
       } else {
         // Use mock data for demo
         const mockData = getMockUpdates(filter, page);
@@ -120,17 +117,15 @@ export default function UpdatesPage() {
 
   // Count updates by type for badges
   const getUpdateCountByType = (type: FilterType): number | null => {
-    if (type === "all") {
-      return pagination.total || null;
+    if (!counts) {
+      if (type === "all") return pagination.total || null;
+      return null;
     }
-    // For demo purposes, return mock counts
-    const counts: Record<string, number> = {
-      commit: 15,
-      issue: 8,
-      pr: 5,
-      release: 3,
-    };
-    return counts[type] || null;
+    
+    if (type === "all") {
+      return Object.values(counts).reduce((a, b) => a + b, 0);
+    }
+    return counts[type] || 0;
   };
 
   return (
