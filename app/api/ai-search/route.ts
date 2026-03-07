@@ -5,14 +5,10 @@
 
 import { NextRequest } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { streamText } from 'ai';
 import { authOptions } from '@/lib/auth';
-import { getUserRepositories, getAiSettings } from '@/lib/db';
-import {
-  isAIConfigured,
-  getDefaultModel,
-  RepositoryForAI,
-} from '@/lib/ai';
+import { getUserRepositories } from '@/lib/db';
+import { isAIConfigured, RepositoryForAI } from '@/lib/ai';
+import { DEFAULT_AI_MODEL } from "@/lib/ai-config";
 
 // Create OpenAI-compatible client
 function createOpenAIClient() {
@@ -51,7 +47,7 @@ export async function POST(request: NextRequest) {
 
     const userId = parseInt(session.user.id, 10);
     const body = await request.json();
-    const { query, model } = body;
+    const { query } = body;
 
     if (!query || typeof query !== 'string') {
       return new Response(JSON.stringify({ error: 'Query is required' }), {
@@ -60,9 +56,8 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Get user's preferred model or use default
-    const aiSettings = await getAiSettings(userId);
-    const modelName = model || getDefaultModel(aiSettings?.preferred_model);
+    // Use configured default model
+    const modelName = DEFAULT_AI_MODEL;
 
     // Get user repositories
     const repositories = await getUserRepositories(userId, { limit: 100 });

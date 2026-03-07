@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { getUserRepositories } from "@/lib/db";
+import { DEFAULT_AI_MODEL } from "@/lib/ai-config";
 
 interface SearchResult {
   id: number;
@@ -60,7 +61,7 @@ export async function POST(request: NextRequest) {
     // Try AI search first if API key is configured
     const apiKey = process.env.OPENAI_API_KEY;
     const baseURL = process.env.OPENAI_BASE_URL || "https://api.openai.com/v1";
-    const model = process.env.OPENAI_MODEL || "glm-4";
+    const model = DEFAULT_AI_MODEL;
     
     if (apiKey) {
       try {
