@@ -127,10 +127,12 @@ export default function DashboardPage() {
         if (reposResponse.ok) {
           const data = await reposResponse.json();
           setRepositories(data.repositories || []);
-          setStats((prev) => ({
-            ...prev,
+          setStats({
+            totalStars: data.stats?.totalStars ?? data.repositories?.length ?? 0,
+            weeklyActive: data.stats?.weeklyActive ?? 0,
+            todayUpdates: data.stats?.todayUpdates ?? 0,
             lastSync: new Date(),
-          }));
+          });
         }
       }
     } catch (error) {
