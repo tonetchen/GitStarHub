@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { getUserUpdates } from "@/lib/db";
+import { getUserUpdates, getUserUpdatesCount } from "@/lib/db";
 
 export interface UpdateItem {
   id: number;
@@ -42,17 +42,17 @@ export async function GET(request: NextRequest) {
     const validTypes = ["commit", "issue", "pr", "release", "readme"];
     const filterType = updateType && validTypes.includes(updateType) ? updateType : undefined;
 
-    // Get updates from database
     const updates = await getUserUpdates(userId, {
       limit,
       offset,
       updateType: filterType,
       unreadOnly,
+      todayOnly: true,
     });
 
-    // For now, we don't have total count from getUserUpdates
-    // In a production app, you would want to add a count query
-    const total = updates.length < limit ? offset + updates.length : offset + limit + 1;
+    // Get accurate count from db
+    const counts = await getUserUpdatesCount(userId, { unreadOnly, todayOnly: true });
+    const total = filterType ? (counts.byType[filterType] || 0) : counts.total;
     const totalPages = Math.ceil(total / limit);
 
     return NextResponse.json({
@@ -63,6 +63,7 @@ export async function GET(request: NextRequest) {
         total,
         totalPages,
       },
+      counts: counts.byType,
     });
   } catch (error) {
     console.error("Error fetching updates:", error);

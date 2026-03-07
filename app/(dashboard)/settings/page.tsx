@@ -28,6 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { DEFAULT_AI_MODEL, SUPPORTED_AI_MODELS, AI_MODEL_LABELS } from "@/lib/ai-config";
 
 // Settings types
 interface SyncSettings {
@@ -40,14 +41,11 @@ interface AiSettings {
   preferredModel: string;
 }
 
-// Available AI models
-const AI_MODELS = [
-  { value: "glm-4", label: "GLM-4 (Recommended)" },
-  { value: "glm-4-flash", label: "GLM-4 Flash (Faster)" },
-  { value: "gpt-4", label: "GPT-4" },
-  { value: "gpt-3.5-turbo", label: "GPT-3.5 Turbo" },
-  { value: "claude-3", label: "Claude 3" },
-];
+// Available AI models from config
+const AI_MODELS = SUPPORTED_AI_MODELS.map(model => ({
+  value: model,
+  label: AI_MODEL_LABELS[model] || model,
+}));
 
 // Sync interval options
 const SYNC_INTERVALS = [
@@ -76,7 +74,7 @@ export default function SettingsPage() {
 
   // AI settings state
   const [aiSettings, setAiSettings] = useState<AiSettings>({
-    preferredModel: "glm-4",
+    preferredModel: DEFAULT_AI_MODEL,
   });
 
   // Fetch current settings
@@ -102,7 +100,7 @@ export default function SettingsPage() {
         if (aiResponse.ok) {
           const aiData = await aiResponse.json();
           setAiSettings({
-            preferredModel: aiData.preferredModel ?? "glm-4",
+            preferredModel: aiData.preferredModel ?? DEFAULT_AI_MODEL,
           });
         }
       } catch (error) {
@@ -295,8 +293,11 @@ export default function SettingsPage() {
             <p className="font-medium mb-2">Model Information:</p>
             <ul className="space-y-1 text-muted-foreground">
               <li>
-                <strong>GLM-4</strong> - Best balance of speed and accuracy for
-                repository analysis
+                <strong>DeepSeek Chat</strong> - Best balance of speed and accuracy for
+                repository analysis (Recommended)
+              </li>
+              <li>
+                <strong>GLM-4</strong> - Good for Chinese language queries
               </li>
               <li>
                 <strong>GLM-4 Flash</strong> - Faster responses, ideal for

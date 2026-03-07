@@ -456,7 +456,7 @@ export async function updateAiSettings(
   try {
     await sql`
       INSERT INTO user_ai_settings (user_id, preferred_model)
-      VALUES (${userId}, ${settings.preferredModel ?? 'glm-4'})
+      VALUES (${userId}, ${settings.preferredModel ?? 'deepseek-chat'})
       ON CONFLICT (user_id)
       DO UPDATE SET
         preferred_model = COALESCE(EXCLUDED.preferred_model, preferred_model),
@@ -545,6 +545,7 @@ export async function getUserUpdates(
     offset?: number;
     updateType?: string;
     unreadOnly?: boolean;
+    todayOnly?: boolean;
   } = {}
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): Promise<any[]> {
@@ -569,6 +570,10 @@ export async function getUserUpdates(
       query += ` AND ru.is_read = false`;
     }
 
+    if (options.todayOnly) {
+      query += ` AND ru.detected_at >= current_date`;
+    }
+
     query += ` ORDER BY ru.detected_at DESC`;
 
     if (options.limit) {
@@ -583,6 +588,61 @@ export async function getUserUpdates(
     return result.rows;
   } catch (error) {
     throw new DatabaseError('Failed to get user updates', error as Error);
+  }
+}
+
+/**
+ * Get count of recent updates for user, grouped by type
+ * @param userId - User ID
+ * @param options - Query options
+ * @returns Object with total and counts by type
+ */
+export async function getUserUpdatesCount(
+  userId: number,
+  options: {
+    unreadOnly?: boolean;
+    todayOnly?: boolean;
+  } = {}
+): Promise<{ total: number; byType: Record<string, number> }> {
+  try {
+    let baseQuery = `
+      SELECT ru.update_type, COUNT(*) as count
+      FROM repository_updates ru
+      JOIN starred_repositories sr ON ru.repo_id = sr.id
+      WHERE sr.user_id = ${userId}
+    `;
+
+    if (options.unreadOnly) {
+      baseQuery += ` AND ru.is_read = false`;
+    }
+
+    if (options.todayOnly) {
+      baseQuery += ` AND ru.detected_at >= current_date`;
+    }
+
+    baseQuery += ` GROUP BY ru.update_type`;
+
+    const result = await sql.query(baseQuery);
+    
+    const byType: Record<string, number> = {
+      commit: 0,
+      issue: 0,
+      pr: 0,
+      release: 0,
+      readme: 0
+    };
+    
+    let total = 0;
+    
+    for (const row of result.rows) {
+      const count = parseInt(row.count, 10);
+      byType[row.update_type] = count;
+      total += count;
+    }
+
+    return { total, byType };
+  } catch (error) {
+    throw new DatabaseError('Failed to get user updates count', error as Error);
   }
 }
 

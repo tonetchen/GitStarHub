@@ -123,7 +123,7 @@ export default function DashboardLayout({
             {/* GitHub Link */}
             <Button variant="ghost" size="icon" asChild>
               <a
-                href="https://github.com"
+                href="https://github.com/tonetchen/GitStarHub.git"
                 target="_blank"
                 rel="noopener noreferrer"
               >

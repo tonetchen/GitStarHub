@@ -30,24 +30,35 @@ export async function GET(request: NextRequest) {
     const syncSettings = await getSyncSettings(userId);
 
     // Get today's updates count
-    const { rows } = await sql`
+    const { rows: todayRows } = await sql`
       SELECT COUNT(*) as count 
       FROM repository_updates ru
       JOIN starred_repositories sr ON ru.repo_id = sr.id
       WHERE sr.user_id = ${userId} 
       AND ru.detected_at >= current_date
     `;
-    const todayUpdates = parseInt(rows[0].count, 10);
+    const todayUpdates = parseInt(todayRows[0].count, 10);
+
+    // Get start of week (Sunday)
+    const now = new Date();
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - now.getDay());
+    startOfWeek.setHours(0, 0, 0, 0);
+
+    // Get weekly active repos count (unique repos with updates this week)
+    const { rows: weeklyRows } = await sql`
+      SELECT COUNT(DISTINCT sr.id) as count 
+      FROM repository_updates ru
+      JOIN starred_repositories sr ON ru.repo_id = sr.id
+      WHERE sr.user_id = ${userId} 
+      AND ru.detected_at >= ${startOfWeek.toISOString()}
+    `;
+    const weeklyActive = parseInt(weeklyRows[0].count, 10);
 
     // Calculate stats
     const stats = {
       totalStars: repositories.length,
-      weeklyActive: repositories.filter((repo: { updated_at: string | Date }) => {
-        const updatedAt = new Date(repo.updated_at);
-        const weekAgo = new Date();
-        weekAgo.setDate(weekAgo.getDate() - 7);
-        return updatedAt > weekAgo;
-      }).length,
+      weeklyActive,
       todayUpdates,
       lastSync: syncSettings?.last_sync_at || null,
     };

@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { GitCommit, CircleDot, GitPullRequest, ExternalLink, FileText } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -112,12 +111,14 @@ export function UpdateItemCard({ update }: UpdateItemProps) {
           <div className="flex-1 min-w-0 space-y-1">
             {/* Header: Repo + Type Badge */}
             <div className="flex items-center gap-2 flex-wrap">
-              <Link
-                href={`/repo/${update.owner_login}/${update.repo_name}`}
+              <a
+                href={githubRepoUrl}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="text-sm font-medium text-primary hover:underline truncate"
               >
                 {update.repo_full_name}
-              </Link>
+              </a>
               <Badge variant="outline" className={`text-xs ${typeConfig.color}`}>
                 {typeConfig.label}
               </Badge>
