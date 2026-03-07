@@ -42,16 +42,16 @@ export async function GET(request: NextRequest) {
     const validTypes = ["commit", "issue", "pr", "release", "readme"];
     const filterType = updateType && validTypes.includes(updateType) ? updateType : undefined;
 
-    // Get updates from database
     const updates = await getUserUpdates(userId, {
       limit,
       offset,
       updateType: filterType,
       unreadOnly,
+      todayOnly: true,
     });
 
     // Get accurate count from db
-    const counts = await getUserUpdatesCount(userId, { unreadOnly });
+    const counts = await getUserUpdatesCount(userId, { unreadOnly, todayOnly: true });
     const total = filterType ? (counts.byType[filterType] || 0) : counts.total;
     const totalPages = Math.ceil(total / limit);
 

@@ -545,6 +545,7 @@ export async function getUserUpdates(
     offset?: number;
     updateType?: string;
     unreadOnly?: boolean;
+    todayOnly?: boolean;
   } = {}
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): Promise<any[]> {
@@ -567,6 +568,10 @@ export async function getUserUpdates(
 
     if (options.unreadOnly) {
       query += ` AND ru.is_read = false`;
+    }
+
+    if (options.todayOnly) {
+      query += ` AND ru.detected_at >= current_date`;
     }
 
     query += ` ORDER BY ru.detected_at DESC`;
@@ -596,6 +601,7 @@ export async function getUserUpdatesCount(
   userId: number,
   options: {
     unreadOnly?: boolean;
+    todayOnly?: boolean;
   } = {}
 ): Promise<{ total: number; byType: Record<string, number> }> {
   try {
@@ -608,6 +614,10 @@ export async function getUserUpdatesCount(
 
     if (options.unreadOnly) {
       baseQuery += ` AND ru.is_read = false`;
+    }
+
+    if (options.todayOnly) {
+      baseQuery += ` AND ru.detected_at >= current_date`;
     }
 
     baseQuery += ` GROUP BY ru.update_type`;
