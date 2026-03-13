@@ -114,7 +114,8 @@ export async function getStructuredSearchResults(
   repositories: RepositoryForAI[],
   modelName: string = DEFAULT_AI_MODEL
 ): Promise<AISearchResult[]> {
-  const client = createAIClient();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const _client = createAIClient();
 
   // Create a map for quick lookup
   const repoMap = new Map<string, RepositoryForAI>();
@@ -199,6 +200,57 @@ Return the most relevant repositories as JSON:`;
   }
 
   return [];
+}
+
+/**
+ * Summarize today's updates using AI
+ * @param updates - List of updates from today
+ * @param modelName - AI model to use
+ * @returns Streamed AI response
+ */
+export async function summarizeTodayUpdates(
+  updates: Array<{
+    repo_full_name: string;
+    update_type: string;
+    title: string;
+    description: string | null;
+  }>,
+  modelName: string = DEFAULT_AI_MODEL
+) {
+  const client = createAIClient();
+
+  // Build update context for AI
+  const updateContext = updates
+    .slice(0, 50) // Limit to 50 updates
+    .map((update, index) => {
+      return `${index + 1}. [${update.repo_full_name}] ${update.update_type.toUpperCase()}: ${update.title}
+   Description: ${update.description || 'No description'}`;
+    })
+    .join('\n\n');
+
+  const systemPrompt = `你是一个专业的开源项目更新总结助手。你的任务是根据用户提供的今日仓库更新内容，生成一份简洁、专业且有价值的总结报告。
+
+总结报告应包括：
+1. 更新概况（用了多少个仓库，共计多少条更新，各类更新的比例）。
+2. 重点仓库今日的更新（挑选最重要的几个更新进行简要说明）。
+
+请使用 Markdown 格式，语言为中文。保持语气专业、客观，重点突出。`;
+
+  const userPrompt = `今日更新内容：
+${updateContext}
+
+请基于以上内容生成一份今日更新总结。`;
+
+  const result = streamText({
+    model: client(modelName),
+    messages: [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userPrompt },
+    ],
+    temperature: 0.7,
+  });
+
+  return result;
 }
 
 /**
