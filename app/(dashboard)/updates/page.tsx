@@ -11,11 +11,13 @@ import {
   ChevronLeft,
   ChevronRight,
   FileText,
+  Sparkles,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { UpdateItemCard, UpdateItem, UpdateType } from "@/components/UpdateItem";
+import { AISummaryDrawer } from "@/components/AISummaryDrawer";
 
 type FilterType = "all" | UpdateType;
 
@@ -51,6 +53,7 @@ export default function UpdatesPage() {
     totalPages: 0,
   });
   const [counts, setCounts] = useState<Record<string, number> | null>(null);
+  const [isSummaryOpen, setIsSummaryOpen] = useState(false);
 
   const fetchUpdates = useCallback(async () => {
     if (!session?.user?.id) return;
@@ -141,7 +144,19 @@ export default function UpdatesPage() {
             Recent activity from your starred repositories
           </p>
         </div>
+        <Button 
+          onClick={() => setIsSummaryOpen(true)}
+          className="bg-gradient-to-r from-primary to-primary/80 hover:shadow-lg shadow-primary/20 transition-all gap-2 group shrink-0 animate-in fade-in slide-in-from-right-4 duration-500"
+        >
+          <Sparkles className="size-4 group-hover:animate-pulse" />
+          AI 今日总结
+        </Button>
       </div>
+
+      <AISummaryDrawer 
+        isOpen={isSummaryOpen} 
+        onClose={() => setIsSummaryOpen(false)} 
+      />
 
       {/* Filter and Stats */}
       <Card>
