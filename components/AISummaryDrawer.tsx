@@ -29,6 +29,18 @@ export function AISummaryDrawer({ isOpen, onClose }: AISummaryDrawerProps) {
         throw new Error("Failed to fetch summary");
       }
 
+      const contentType = response.headers.get("content-type");
+      
+      if (contentType?.includes("application/json")) {
+        const data = await response.json();
+        if (data.content) {
+          setSummary(data.content);
+        } else if (data.error) {
+          throw new Error(data.error);
+        }
+        return;
+      }
+
       const reader = response.body?.getReader();
       const decoder = new TextDecoder();
 
