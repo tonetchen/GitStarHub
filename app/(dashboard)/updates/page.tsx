@@ -149,7 +149,7 @@ export default function UpdatesPage() {
           className="bg-gradient-to-r from-primary to-primary/80 hover:shadow-lg shadow-primary/20 transition-all gap-2 group shrink-0 animate-in fade-in slide-in-from-right-4 duration-500"
         >
           <Sparkles className="size-4 group-hover:animate-pulse" />
-          AI 今日总结
+          AI Daily Summary
         </Button>
       </div>
 
