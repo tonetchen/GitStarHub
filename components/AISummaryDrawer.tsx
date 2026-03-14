@@ -96,28 +96,40 @@ export function AISummaryDrawer({ isOpen, onClose }: AISummaryDrawerProps) {
     };
   }, [isOpen]);
 
+  const renderFormattedText = (text: string) => {
+    if (!text.includes("**")) return text;
+    
+    const parts = text.split(/(\*\*.*?\*\*)/);
+    return parts.map((part, i) => {
+      if (part.startsWith("**") && part.endsWith("**")) {
+        return <strong key={i} className="font-bold text-foreground">{part.slice(2, -2)}</strong>;
+      }
+      return part;
+    });
+  };
+
   const renderMarkdownLine = (line: string, index: number) => {
     if (!line.trim()) return <div key={index} className="h-4" />;
 
     // Headers
     if (line.startsWith("# ")) {
-      return <h1 key={index} className="text-2xl font-bold mt-8 mb-4 border-b pb-2">{line.slice(2)}</h1>;
+      return <h1 key={index} className="text-2xl font-bold mt-8 mb-4 border-b pb-2">{renderFormattedText(line.slice(2))}</h1>;
     }
     if (line.startsWith("## ")) {
       return <h2 key={index} className="text-xl font-bold mt-6 mb-3 flex items-center gap-2">
         <span className="w-1.5 h-6 bg-primary rounded-full inline-block" />
-        {line.slice(3)}
+        {renderFormattedText(line.slice(3))}
       </h2>;
     }
     if (line.startsWith("### ")) {
-      return <h3 key={index} className="text-lg font-semibold mt-4 mb-2">{line.slice(4)}</h3>;
+      return <h3 key={index} className="text-lg font-semibold mt-4 mb-2">{renderFormattedText(line.slice(4))}</h3>;
     }
 
     // List items
     if (line.startsWith("- ") || line.startsWith("* ")) {
       return <div key={index} className="flex gap-2 ml-2 mb-1.5">
         <span className="text-primary mt-1.5 select-none">•</span>
-        <span>{line.slice(2)}</span>
+        <span>{renderFormattedText(line.slice(2))}</span>
       </div>;
     }
     
@@ -126,24 +138,11 @@ export function AISummaryDrawer({ isOpen, onClose }: AISummaryDrawerProps) {
     if (numMatch) {
       return <div key={index} className="flex gap-2 ml-2 mb-1.5">
         <span className="text-primary font-bold min-w-[1.5rem] mt-1 select-none">{numMatch[1]}.</span>
-        <span>{numMatch[2]}</span>
+        <span>{renderFormattedText(numMatch[2])}</span>
       </div>;
     }
 
-    // Bold text
-    if (line.includes("**")) {
-        const parts = line.split(/(\*\*.*?\*\*)/);
-        return <p key={index} className="mb-3 leading-relaxed">
-            {parts.map((part, i) => {
-                if (part.startsWith("**") && part.endsWith("**")) {
-                    return <strong key={i} className="text-primary font-bold">{part.slice(2, -2)}</strong>;
-                }
-                return part;
-            })}
-        </p>;
-    }
-
-    return <p key={index} className="mb-3 leading-relaxed text-foreground/80">{line}</p>;
+    return <p key={index} className="mb-3 leading-relaxed text-foreground/80">{renderFormattedText(line)}</p>;
   };
 
   return (
