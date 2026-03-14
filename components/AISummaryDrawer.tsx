@@ -176,10 +176,10 @@ export function AISummaryDrawer({ isOpen, onClose }: AISummaryDrawerProps) {
             </div>
             <div>
               <h2 className="text-xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-                今日更新 AI 总结
+                Daily AI Summary
               </h2>
               <p className="text-xs text-muted-foreground font-medium">
-                AI 正在阅读您的仓库动态...
+                AI is reading your repository updates...
               </p>
             </div>
           </div>
@@ -202,9 +202,9 @@ export function AISummaryDrawer({ isOpen, onClose }: AISummaryDrawerProps) {
                 <Loader2 className="size-16 animate-spin text-primary relative" />
               </div>
               <div className="text-center space-y-2">
-                <p className="text-lg font-medium">AI 思考中...</p>
+                <p className="text-lg font-medium">AI is thinking...</p>
                 <p className="text-sm text-muted-foreground max-w-[250px]">
-                  正在分析今日各仓库的更新内容，提取最关键的信息。
+                  Analyzing today&apos;s updates and extracting key information.
                 </p>
               </div>
             </div>
@@ -215,13 +215,13 @@ export function AISummaryDrawer({ isOpen, onClose }: AISummaryDrawerProps) {
               <div className="bg-destructive/10 p-4 rounded-full mb-4">
                 <X className="size-10 text-destructive" />
               </div>
-              <h3 className="text-lg font-semibold mb-2">总结生成失败</h3>
+              <h3 className="text-lg font-semibold mb-2">Failed to generate summary</h3>
               <p className="text-sm text-muted-foreground mb-6 max-w-[300px]">
-                {error}. 请检查您的网络连接或 AI 配置是否正确。
+                {error}. Please check your connection or AI configuration.
               </p>
               <Button variant="outline" onClick={fetchSummary} className="gap-2">
                 <RefreshCw className="size-4" />
-                重试一下
+                Try Again
               </Button>
             </div>
           )}
@@ -231,7 +231,7 @@ export function AISummaryDrawer({ isOpen, onClose }: AISummaryDrawerProps) {
               <div className="bg-primary/5 border border-primary/10 rounded-2xl p-6 mb-8">
                 <div className="flex items-center gap-2 mb-4 text-primary font-semibold text-sm uppercase tracking-wider">
                     <Sparkles className="size-4" />
-                    AI 洞察
+                    AI Insights
                 </div>
                 <div className="font-sans text-[15px]">
                   {summary.split("\n").map((line, i) => renderMarkdownLine(line, i))}
@@ -255,7 +255,7 @@ export function AISummaryDrawer({ isOpen, onClose }: AISummaryDrawerProps) {
               className="px-6 border-primary/20 hover:bg-primary/5"
               onClick={onClose}
             >
-              关闭
+              Close
             </Button>
             <Button
               className="flex-1 bg-gradient-to-r from-primary/90 to-primary shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all duration-300"
@@ -265,12 +265,12 @@ export function AISummaryDrawer({ isOpen, onClose }: AISummaryDrawerProps) {
               {isLoading ? (
                 <>
                   <Loader2 className="size-4 animate-spin mr-2" />
-                  生成中...
+                  Generating...
                 </>
               ) : (
                 <>
                   <RefreshCw className="size-4 mr-2" />
-                  重新总结
+                  Regenerate Summary
                 </>
               )}
             </Button>

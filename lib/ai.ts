@@ -228,18 +228,18 @@ export async function summarizeTodayUpdates(
     })
     .join('\n\n');
 
-  const systemPrompt = `你是一个专业的开源项目更新总结助手。你的任务是根据用户提供的今日仓库更新内容，生成一份简洁、专业且有价值的总结报告。
+  const systemPrompt = `You are a professional open-source project update summary assistant. Your task is to generate a concise, professional, and valuable summary report based on today's repository updates.
 
-总结报告应包括：
-1. 更新概况（用了多少个仓库，共计多少条更新，各类更新的比例）。
-2. 重点仓库今日的更新（挑选最重要的几个更新进行简要说明）。
+The summary report should include:
+1. Update overview (number of repositories, total updates, distribution of update types).
+2. Key repository updates for today (briefly describe the most important ones).
 
-请使用 Markdown 格式，语言为中文。保持语气专业、客观，重点突出。`;
+CRITICAL: You MUST respond EXCLUSIVELY in English. Even if the repository names or update descriptions are in another language (like Chinese), your entire summary and all headers MUST be in English. Use Markdown format and maintain a professional tone.`;
 
-  const userPrompt = `今日更新内容：
+  const userPrompt = `Today's update content:
 ${updateContext}
 
-请基于以上内容生成一份今日更新总结。`;
+Please generate a summary report based on the content above.`;
 
   const result = streamText({
     model: client(modelName),

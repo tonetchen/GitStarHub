@@ -69,7 +69,7 @@ The summary report should include:
 1. Update overview (number of repositories, total updates, distribution of update types).
 2. Key repository updates for today (briefly describe the most important ones).
 
-Please use Markdown format, language: English. Maintain a professional and objective tone, highlighting key information.`;
+CRITICAL: You MUST respond EXCLUSIVELY in English. Even if the repository names or update descriptions are in another language (like Chinese), your entire summary and all headers MUST be in English. Use Markdown format and maintain a professional tone.`;
 
     const userPrompt = `Today's update content:
 ${updateContext}
