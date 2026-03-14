@@ -176,7 +176,7 @@ export function AISummaryDrawer({ isOpen, onClose }: AISummaryDrawerProps) {
             </div>
             <div>
               <h2 className="text-xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-                Daily AI Summary
+                Daily Summary
               </h2>
               <p className="text-xs text-muted-foreground font-medium">
                 AI is reading your repository updates...
@@ -229,10 +229,6 @@ export function AISummaryDrawer({ isOpen, onClose }: AISummaryDrawerProps) {
           {summary && (
             <div className="animate-in fade-in slide-in-from-bottom-6 duration-700 ease-out">
               <div className="bg-primary/5 border border-primary/10 rounded-2xl p-6 mb-8">
-                <div className="flex items-center gap-2 mb-4 text-primary font-semibold text-sm uppercase tracking-wider">
-                    <Sparkles className="size-4" />
-                    AI Insights
-                </div>
                 <div className="font-sans text-[15px]">
                   {summary.split("\n").map((line, i) => renderMarkdownLine(line, i))}
                 </div>
@@ -270,7 +266,7 @@ export function AISummaryDrawer({ isOpen, onClose }: AISummaryDrawerProps) {
               ) : (
                 <>
                   <RefreshCw className="size-4 mr-2" />
-                  Regenerate Summary
+                  Regenerate
                 </>
               )}
             </Button>
