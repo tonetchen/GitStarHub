@@ -109,40 +109,56 @@ export function AISummaryDrawer({ isOpen, onClose }: AISummaryDrawerProps) {
   };
 
   const renderMarkdownLine = (line: string, index: number) => {
+    // Empty line
     if (!line.trim()) return <div key={index} className="h-4" />;
 
     // Headers
-    if (line.startsWith("# ")) {
-      return <h1 key={index} className="text-2xl font-bold mt-8 mb-4 border-b pb-2">{renderFormattedText(line.slice(2))}</h1>;
-    }
-    if (line.startsWith("## ")) {
-      return <h2 key={index} className="text-xl font-bold mt-6 mb-3 flex items-center gap-2">
-        <span className="w-1.5 h-6 bg-primary rounded-full inline-block" />
-        {renderFormattedText(line.slice(3))}
-      </h2>;
-    }
-    if (line.startsWith("### ")) {
-      return <h3 key={index} className="text-lg font-semibold mt-4 mb-2">{renderFormattedText(line.slice(4))}</h3>;
-    }
-
-    // List items
-    if (line.startsWith("- ") || line.startsWith("* ")) {
-      return <div key={index} className="flex gap-2 ml-2 mb-1.5">
-        <span className="text-primary mt-1.5 select-none">•</span>
-        <span>{renderFormattedText(line.slice(2))}</span>
-      </div>;
+    const h1Match = line.match(/^#\s+(.*)/);
+    if (h1Match) {
+      return <h1 key={index} className="text-2xl font-bold mt-8 mb-4 border-b pb-2">{renderFormattedText(h1Match[1])}</h1>;
     }
     
-    // Numbered items
-    const numMatch = line.match(/^(\d+)\.\s+(.*)/);
-    if (numMatch) {
-      return <div key={index} className="flex gap-2 ml-2 mb-1.5">
-        <span className="text-primary font-bold min-w-[1.5rem] mt-1 select-none">{numMatch[1]}.</span>
-        <span>{renderFormattedText(numMatch[2])}</span>
-      </div>;
+    const h2Match = line.match(/^##\s+(.*)/);
+    if (h2Match) {
+      return <h2 key={index} className="text-xl font-bold mt-10 mb-5 flex items-center gap-3">
+        <span className="w-1.5 h-6 bg-primary rounded-full inline-block shrink-0" />
+        {renderFormattedText(h2Match[1])}
+      </h2>;
+    }
+    
+    const h3Match = line.match(/^###\s+(.*)/);
+    if (h3Match) {
+      return <h3 key={index} className="text-lg font-bold mt-6 mb-3 flex items-center gap-2 text-foreground">
+        {renderFormattedText(h3Match[1])}
+      </h3>;
     }
 
-    return <p key={index} className="mb-3 leading-relaxed text-foreground/80">{renderFormattedText(line)}</p>;
+    // List items (supports optional indentation)
+    const listMatch = line.match(/^(\s*)([-*+]|\d+\.)\s+(.*)/);
+    if (listMatch) {
+      const indent = listMatch[1].length;
+      const marker = listMatch[2];
+      const content = listMatch[3];
+      const isNumbered = /^\d/.test(marker);
+
+      return (
+        <div 
+          key={index} 
+          className="flex items-start gap-3 mb-2 leading-relaxed"
+          style={{ paddingLeft: `${indent > 0 ? (indent * 0.5) : 0}rem` }}
+        >
+          {isNumbered ? (
+            <span className="text-primary font-bold min-w-[1.25rem] mt-0.5 text-sm select-none">{marker}</span>
+          ) : (
+            <span className="text-primary mt-2 select-none text-[8px] flex-shrink-0">●</span>
+          )}
+          <span className="text-foreground/90">{renderFormattedText(content)}</span>
+        </div>
+      );
+    }
+
+    // Default paragraph
+    return <p key={index} className="mb-4 leading-relaxed text-foreground/85">{renderFormattedText(line)}</p>;
   };
 
   return (
