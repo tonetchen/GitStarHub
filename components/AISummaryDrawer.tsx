@@ -96,54 +96,69 @@ export function AISummaryDrawer({ isOpen, onClose }: AISummaryDrawerProps) {
     };
   }, [isOpen]);
 
+  const renderFormattedText = (text: string) => {
+    if (!text.includes("**")) return text;
+    
+    const parts = text.split(/(\*\*.*?\*\*)/);
+    return parts.map((part, i) => {
+      if (part.startsWith("**") && part.endsWith("**")) {
+        return <strong key={i} className="font-bold text-foreground">{part.slice(2, -2)}</strong>;
+      }
+      return part;
+    });
+  };
+
   const renderMarkdownLine = (line: string, index: number) => {
+    // Empty line
     if (!line.trim()) return <div key={index} className="h-4" />;
 
     // Headers
-    if (line.startsWith("# ")) {
-      return <h1 key={index} className="text-2xl font-bold mt-8 mb-4 border-b pb-2">{line.slice(2)}</h1>;
-    }
-    if (line.startsWith("## ")) {
-      return <h2 key={index} className="text-xl font-bold mt-6 mb-3 flex items-center gap-2">
-        <span className="w-1.5 h-6 bg-primary rounded-full inline-block" />
-        {line.slice(3)}
-      </h2>;
-    }
-    if (line.startsWith("### ")) {
-      return <h3 key={index} className="text-lg font-semibold mt-4 mb-2">{line.slice(4)}</h3>;
-    }
-
-    // List items
-    if (line.startsWith("- ") || line.startsWith("* ")) {
-      return <div key={index} className="flex gap-2 ml-2 mb-1.5">
-        <span className="text-primary mt-1.5 select-none">•</span>
-        <span>{line.slice(2)}</span>
-      </div>;
+    const h1Match = line.match(/^#\s+(.*)/);
+    if (h1Match) {
+      return <h1 key={index} className="text-2xl font-bold mt-8 mb-4 border-b pb-2">{renderFormattedText(h1Match[1])}</h1>;
     }
     
-    // Numbered items
-    const numMatch = line.match(/^(\d+)\.\s+(.*)/);
-    if (numMatch) {
-      return <div key={index} className="flex gap-2 ml-2 mb-1.5">
-        <span className="text-primary font-bold min-w-[1.5rem] mt-1 select-none">{numMatch[1]}.</span>
-        <span>{numMatch[2]}</span>
-      </div>;
+    const h2Match = line.match(/^##\s+(.*)/);
+    if (h2Match) {
+      return <h2 key={index} className="text-xl font-bold mt-10 mb-5 flex items-center gap-3">
+        <span className="w-1.5 h-6 bg-primary rounded-full inline-block shrink-0" />
+        {renderFormattedText(h2Match[1])}
+      </h2>;
+    }
+    
+    const h3Match = line.match(/^###\s+(.*)/);
+    if (h3Match) {
+      return <h3 key={index} className="text-lg font-bold mt-6 mb-3 flex items-center gap-2 text-foreground">
+        {renderFormattedText(h3Match[1])}
+      </h3>;
     }
 
-    // Bold text
-    if (line.includes("**")) {
-        const parts = line.split(/(\*\*.*?\*\*)/);
-        return <p key={index} className="mb-3 leading-relaxed">
-            {parts.map((part, i) => {
-                if (part.startsWith("**") && part.endsWith("**")) {
-                    return <strong key={i} className="text-primary font-bold">{part.slice(2, -2)}</strong>;
-                }
-                return part;
-            })}
-        </p>;
+    // List items (supports optional indentation)
+    const listMatch = line.match(/^(\s*)([-*+]|\d+\.)\s+(.*)/);
+    if (listMatch) {
+      const indent = listMatch[1].length;
+      const marker = listMatch[2];
+      const content = listMatch[3];
+      const isNumbered = /^\d/.test(marker);
+
+      return (
+        <div 
+          key={index} 
+          className="flex items-start gap-3 mb-2 leading-relaxed"
+          style={{ paddingLeft: `${indent > 0 ? (indent * 0.5) : 0}rem` }}
+        >
+          {isNumbered ? (
+            <span className="text-primary font-bold min-w-[1.25rem] mt-0.5 text-sm select-none">{marker}</span>
+          ) : (
+            <span className="text-primary mt-2 select-none text-[8px] flex-shrink-0">●</span>
+          )}
+          <span className="text-foreground/90">{renderFormattedText(content)}</span>
+        </div>
+      );
     }
 
-    return <p key={index} className="mb-3 leading-relaxed text-foreground/80">{line}</p>;
+    // Default paragraph
+    return <p key={index} className="mb-4 leading-relaxed text-foreground/85">{renderFormattedText(line)}</p>;
   };
 
   return (
@@ -176,10 +191,10 @@ export function AISummaryDrawer({ isOpen, onClose }: AISummaryDrawerProps) {
             </div>
             <div>
               <h2 className="text-xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-                今日更新 AI 总结
+                Daily Summary
               </h2>
               <p className="text-xs text-muted-foreground font-medium">
-                AI 正在阅读您的仓库动态...
+                AI is reading your repository updates...
               </p>
             </div>
           </div>
@@ -202,9 +217,9 @@ export function AISummaryDrawer({ isOpen, onClose }: AISummaryDrawerProps) {
                 <Loader2 className="size-16 animate-spin text-primary relative" />
               </div>
               <div className="text-center space-y-2">
-                <p className="text-lg font-medium">AI 思考中...</p>
+                <p className="text-lg font-medium">AI is thinking...</p>
                 <p className="text-sm text-muted-foreground max-w-[250px]">
-                  正在分析今日各仓库的更新内容，提取最关键的信息。
+                  Analyzing today&apos;s updates and extracting key information.
                 </p>
               </div>
             </div>
@@ -215,13 +230,13 @@ export function AISummaryDrawer({ isOpen, onClose }: AISummaryDrawerProps) {
               <div className="bg-destructive/10 p-4 rounded-full mb-4">
                 <X className="size-10 text-destructive" />
               </div>
-              <h3 className="text-lg font-semibold mb-2">总结生成失败</h3>
+              <h3 className="text-lg font-semibold mb-2">Failed to generate summary</h3>
               <p className="text-sm text-muted-foreground mb-6 max-w-[300px]">
-                {error}. 请检查您的网络连接或 AI 配置是否正确。
+                {error}. Please check your connection or AI configuration.
               </p>
               <Button variant="outline" onClick={fetchSummary} className="gap-2">
                 <RefreshCw className="size-4" />
-                重试一下
+                Try Again
               </Button>
             </div>
           )}
@@ -229,10 +244,6 @@ export function AISummaryDrawer({ isOpen, onClose }: AISummaryDrawerProps) {
           {summary && (
             <div className="animate-in fade-in slide-in-from-bottom-6 duration-700 ease-out">
               <div className="bg-primary/5 border border-primary/10 rounded-2xl p-6 mb-8">
-                <div className="flex items-center gap-2 mb-4 text-primary font-semibold text-sm uppercase tracking-wider">
-                    <Sparkles className="size-4" />
-                    AI 洞察
-                </div>
                 <div className="font-sans text-[15px]">
                   {summary.split("\n").map((line, i) => renderMarkdownLine(line, i))}
                 </div>
@@ -255,7 +266,7 @@ export function AISummaryDrawer({ isOpen, onClose }: AISummaryDrawerProps) {
               className="px-6 border-primary/20 hover:bg-primary/5"
               onClick={onClose}
             >
-              关闭
+              Close
             </Button>
             <Button
               className="flex-1 bg-gradient-to-r from-primary/90 to-primary shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all duration-300"
@@ -265,12 +276,12 @@ export function AISummaryDrawer({ isOpen, onClose }: AISummaryDrawerProps) {
               {isLoading ? (
                 <>
                   <Loader2 className="size-4 animate-spin mr-2" />
-                  生成中...
+                  Generating...
                 </>
               ) : (
                 <>
                   <RefreshCw className="size-4 mr-2" />
-                  重新总结
+                  Regenerate
                 </>
               )}
             </Button>

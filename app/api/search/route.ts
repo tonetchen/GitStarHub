@@ -79,7 +79,7 @@ CRITICAL INSTRUCTIONS:
 2. Only rely on semantic meaning if no direct name or topic matches exist.
 3. You MUST return a JSON object with a 'results' array. Each object in the array must have:
 - "id": the numeric ID of the matching repository
-- "relevanceReason": a brief, precise explanation in the user's language of why it matches (max 15 words)
+- "relevanceReason": a brief, precise explanation in English of why it matches (max 15 words)
 If no repositories are relevant, return {"results": []}.`;
 
         const userPrompt = `Search Query: "${query}"
