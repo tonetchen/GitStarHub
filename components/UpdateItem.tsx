@@ -99,7 +99,7 @@ export function UpdateItemCard({ update }: UpdateItemProps) {
   const githubRepoUrl = `https://github.com/${update.repo_full_name}`;
 
   return (
-    <Card className={`group hover:shadow-md transition-shadow duration-200 ${!update.is_read ? "border-l-2 border-l-primary" : ""}`}>
+    <Card className="group hover:shadow-md transition-shadow duration-200">
       <CardContent className="p-4">
         <div className="flex items-start gap-3">
           {/* Type Icon */}
