@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Sparkles, X, Loader2, RefreshCw } from "lucide-react";
+import { Sparkles, X, Loader2, RefreshCw, Languages } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -10,10 +10,13 @@ interface AISummaryDrawerProps {
   onClose: () => void;
 }
 
+type Language = "en" | "zh";
+
 export function AISummaryDrawer({ isOpen, onClose }: AISummaryDrawerProps) {
   const [summary, setSummary] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [language, setLanguage] = useState<Language>("en");
 
   const fetchSummary = async () => {
     setIsLoading(true);
@@ -23,6 +26,10 @@ export function AISummaryDrawer({ isOpen, onClose }: AISummaryDrawerProps) {
     try {
       const response = await fetch("/api/ai-summary", {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ language }),
       });
 
       if (!response.ok) {
@@ -83,6 +90,13 @@ export function AISummaryDrawer({ isOpen, onClose }: AISummaryDrawerProps) {
       fetchSummary();
     }
   }, [isOpen]);
+
+  // Refetch summary when language changes
+  useEffect(() => {
+    if (isOpen && !isLoading) {
+      fetchSummary();
+    }
+  }, [language]);
 
   // Clean up body scroll when drawer is open
   useEffect(() => {
@@ -198,14 +212,29 @@ export function AISummaryDrawer({ isOpen, onClose }: AISummaryDrawerProps) {
               </p>
             </div>
           </div>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={onClose}
-            className="rounded-full hover:bg-muted/80"
-          >
-            <X className="size-5" />
-          </Button>
+          <div className="flex items-center gap-2">
+            {/* Language Toggle */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setLanguage(language === "en" ? "zh" : "en")}
+              className="rounded-full hover:bg-muted/80 gap-1.5 text-xs font-medium"
+              disabled={isLoading}
+            >
+              <Languages className="size-4" />
+              <span className={cn("uppercase", language === "en" ? "text-primary font-semibold" : "text-muted-foreground")}>EN</span>
+              <span className="text-muted-foreground">/</span>
+              <span className={cn("uppercase", language === "zh" ? "text-primary font-semibold" : "text-muted-foreground")}>中</span>
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onClose}
+              className="rounded-full hover:bg-muted/80"
+            >
+              <X className="size-5" />
+            </Button>
+          </div>
         </div>
 
         {/* Content */}

@@ -31,8 +31,18 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    // Parse request body to get language preference
+    let language = 'en';
+    try {
+      const body = await request.json();
+      language = body.language || 'en';
+    } catch {
+      // If no body or invalid JSON, default to English
+      language = 'en';
+    }
+
     const userId = parseInt(session.user.id, 10);
-    
+
     // Get updates from the last 24 hours instead of just today (more robust)
     const updates = await getUserUpdates(userId, {
       limit: 50,
@@ -41,11 +51,12 @@ export async function POST(request: NextRequest) {
 
     // Filter for last 24 hours manually if needed, or just use the most recent ones
     // For now, let's just take the most recent 50 updates regardless of time to ensure something is displayed
-    
+
     const encoder = new TextEncoder();
 
     if (updates.length === 0) {
-      return new Response(JSON.stringify({ content: "No recent updates found." }), {
+      const noContent = language === 'zh' ? "没有找到最近的更新。" : "No recent updates found.";
+      return new Response(JSON.stringify({ content: noContent }), {
         status: 200,
         headers: { "Content-Type": "application/json" },
       });
@@ -63,7 +74,17 @@ export async function POST(request: NextRequest) {
       })
       .join('\n\n');
 
-    const systemPrompt = `You are a professional open-source project update summary assistant. Your task is to generate a concise, professional, and valuable summary report based on today's repository updates.
+    const isChinese = language === 'zh';
+
+    const systemPrompt = isChinese
+      ? `你是一个专业的开源项目更新摘要助手。你的任务是根据今天的仓库更新生成简洁、专业且有价值的总结报告。
+
+总结报告应包括：
+1. 更新概览（仓库数量、总更新数、更新类型分布）。
+2. 今日关键仓库更新（简要描述最重要的更新）。
+
+重要：你必须完全使用中文回复。即使仓库名称或更新描述是其他语言，你的整个摘要和所有标题都必须使用中文。使用 Markdown 格式，保持专业语气。`
+      : `You are a professional open-source project update summary assistant. Your task is to generate a concise, professional, and valuable summary report based on today's repository updates.
 
 The summary report should include:
 1. Update overview (number of repositories, total updates, distribution of update types).
@@ -71,7 +92,12 @@ The summary report should include:
 
 CRITICAL: You MUST respond EXCLUSIVELY in English. Even if the repository names or update descriptions are in another language (like Chinese), your entire summary and all headers MUST be in English. Use Markdown format and maintain a professional tone.`;
 
-    const userPrompt = `Today's update content:
+    const userPrompt = isChinese
+      ? `今天的更新内容：
+${updateContext}
+
+请根据以上内容生成一份总结报告。`
+      : `Today's update content:
 ${updateContext}
 
 Please generate a summary report based on the content above.`;
