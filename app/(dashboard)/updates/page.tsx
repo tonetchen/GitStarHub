@@ -152,9 +152,8 @@ export default function UpdatesPage() {
           {/* Language Toggle */}
           <Button
             variant="outline"
-            size="sm"
             onClick={() => setSummaryLanguage(summaryLanguage === "en" ? "zh" : "en")}
-            className="gap-1.5 text-xs font-medium border-primary/20 hover:bg-primary/5"
+            className="gap-1.5 text-sm font-medium border-primary/20 hover:bg-primary/5 h-10 px-4"
           >
             <Languages className="size-4" />
             <span className={cn("uppercase", summaryLanguage === "en" ? "text-primary font-semibold" : "text-muted-foreground")}>EN</span>
@@ -163,7 +162,7 @@ export default function UpdatesPage() {
           </Button>
           <Button
             onClick={() => setIsSummaryOpen(true)}
-            className="bg-gradient-to-r from-primary to-primary/80 hover:shadow-lg shadow-primary/20 transition-all gap-2 group shrink-0 animate-in fade-in slide-in-from-right-4 duration-500"
+            className="bg-gradient-to-r from-primary to-primary/80 hover:shadow-lg shadow-primary/20 transition-all gap-2 group shrink-0 animate-in fade-in slide-in-from-right-4 duration-500 h-10 px-4"
           >
             <Sparkles className="size-4 group-hover:animate-pulse" />
             Summary
