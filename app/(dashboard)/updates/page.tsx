@@ -12,14 +12,17 @@ import {
   ChevronRight,
   FileText,
   Sparkles,
+  Languages,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { UpdateItemCard, UpdateItem, UpdateType } from "@/components/UpdateItem";
 import { AISummaryDrawer } from "@/components/AISummaryDrawer";
+import { cn } from "@/lib/utils";
 
 type FilterType = "all" | UpdateType;
+type Language = "en" | "zh";
 
 interface UpdatesResponse {
   updates: UpdateItem[];
@@ -54,6 +57,7 @@ export default function UpdatesPage() {
   });
   const [counts, setCounts] = useState<Record<string, number> | null>(null);
   const [isSummaryOpen, setIsSummaryOpen] = useState(false);
+  const [summaryLanguage, setSummaryLanguage] = useState<Language>("en");
 
   const fetchUpdates = useCallback(async () => {
     if (!session?.user?.id) return;
@@ -144,18 +148,32 @@ export default function UpdatesPage() {
             Recent activity from your starred repositories
           </p>
         </div>
-        <Button 
-          onClick={() => setIsSummaryOpen(true)}
-          className="bg-gradient-to-r from-primary to-primary/80 hover:shadow-lg shadow-primary/20 transition-all gap-2 group shrink-0 animate-in fade-in slide-in-from-right-4 duration-500"
-        >
-          <Sparkles className="size-4 group-hover:animate-pulse" />
-          Summary
-        </Button>
+        <div className="flex items-center gap-2">
+          {/* Language Toggle */}
+          <Button
+            variant="outline"
+            onClick={() => setSummaryLanguage(summaryLanguage === "en" ? "zh" : "en")}
+            className="gap-1.5 text-sm font-medium border-primary/20 hover:bg-primary/5 h-10 px-4"
+          >
+            <Languages className="size-4" />
+            <span className={cn("uppercase", summaryLanguage === "en" ? "text-primary font-semibold" : "text-muted-foreground")}>EN</span>
+            <span className="text-muted-foreground">/</span>
+            <span className={cn("uppercase", summaryLanguage === "zh" ? "text-primary font-semibold" : "text-muted-foreground")}>中</span>
+          </Button>
+          <Button
+            onClick={() => setIsSummaryOpen(true)}
+            className="bg-gradient-to-r from-primary to-primary/80 hover:shadow-lg shadow-primary/20 transition-all gap-2 group shrink-0 animate-in fade-in slide-in-from-right-4 duration-500 h-10 px-4"
+          >
+            <Sparkles className="size-4 group-hover:animate-pulse" />
+            Summary
+          </Button>
+        </div>
       </div>
 
-      <AISummaryDrawer 
-        isOpen={isSummaryOpen} 
-        onClose={() => setIsSummaryOpen(false)} 
+      <AISummaryDrawer
+        isOpen={isSummaryOpen}
+        onClose={() => setIsSummaryOpen(false)}
+        language={summaryLanguage}
       />
 
       {/* Filter and Stats */}

@@ -8,9 +8,10 @@ import { cn } from "@/lib/utils";
 interface AISummaryDrawerProps {
   isOpen: boolean;
   onClose: () => void;
+  language?: "en" | "zh";
 }
 
-export function AISummaryDrawer({ isOpen, onClose }: AISummaryDrawerProps) {
+export function AISummaryDrawer({ isOpen, onClose, language = "en" }: AISummaryDrawerProps) {
   const [summary, setSummary] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -23,6 +24,10 @@ export function AISummaryDrawer({ isOpen, onClose }: AISummaryDrawerProps) {
     try {
       const response = await fetch("/api/ai-summary", {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ language }),
       });
 
       if (!response.ok) {
@@ -83,6 +88,13 @@ export function AISummaryDrawer({ isOpen, onClose }: AISummaryDrawerProps) {
       fetchSummary();
     }
   }, [isOpen]);
+
+  // Refetch summary when language changes
+  useEffect(() => {
+    if (isOpen && !isLoading) {
+      fetchSummary();
+    }
+  }, [language, isOpen]);
 
   // Clean up body scroll when drawer is open
   useEffect(() => {
@@ -198,9 +210,9 @@ export function AISummaryDrawer({ isOpen, onClose }: AISummaryDrawerProps) {
               </p>
             </div>
           </div>
-          <Button 
-            variant="ghost" 
-            size="icon" 
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={onClose}
             className="rounded-full hover:bg-muted/80"
           >

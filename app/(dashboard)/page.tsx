@@ -80,8 +80,20 @@ export default function DashboardPage() {
     lastSync: null as Date | null,
   });
 
+  // Check if a date is today
+  const isToday = (date: Date) => {
+    const now = new Date();
+    return (
+      date.getFullYear() === now.getFullYear() &&
+      date.getMonth() === now.getMonth() &&
+      date.getDate() === now.getDate()
+    );
+  };
+
   // Fetch repositories
   useEffect(() => {
+    let needsAutoSync = false;
+
     async function fetchRepositories() {
       if (!session?.user?.id) return;
 
@@ -91,12 +103,17 @@ export default function DashboardPage() {
         if (response.ok) {
           const data = await response.json();
           setRepositories(data.repositories || []);
+          const lastSyncDate = data.stats?.lastSync ? new Date(data.stats.lastSync) : null;
           setStats({
             totalStars: data.stats?.totalStars ?? data.repositories?.length ?? 0,
             weeklyActive: data.stats?.weeklyActive ?? 0,
             todayUpdates: data.stats?.todayUpdates ?? 0,
-            lastSync: data.stats?.lastSync ? new Date(data.stats.lastSync) : null,
+            lastSync: lastSyncDate,
           });
+          // If never synced or last sync is not today, trigger auto sync
+          if (!lastSyncDate || !isToday(lastSyncDate)) {
+            needsAutoSync = true;
+          }
         }
       } catch (error) {
         console.error("Failed to fetch repositories:", error);
@@ -113,7 +130,35 @@ export default function DashboardPage() {
       }
     }
 
-    fetchRepositories();
+    async function autoSync() {
+      setIsSyncing(true);
+      try {
+        const response = await fetch("/api/sync/manual", { method: "POST" });
+        if (response.ok) {
+          const reposResponse = await fetch("/api/repositories");
+          if (reposResponse.ok) {
+            const data = await reposResponse.json();
+            setRepositories(data.repositories || []);
+            setStats({
+              totalStars: data.stats?.totalStars ?? data.repositories?.length ?? 0,
+              weeklyActive: data.stats?.weeklyActive ?? 0,
+              todayUpdates: data.stats?.todayUpdates ?? 0,
+              lastSync: new Date(),
+            });
+          }
+        }
+      } catch (error) {
+        console.error("Auto sync failed:", error);
+      } finally {
+        setIsSyncing(false);
+      }
+    }
+
+    fetchRepositories().then(() => {
+      if (needsAutoSync) {
+        autoSync();
+      }
+    });
   }, [session]);
 
   // Sync stars

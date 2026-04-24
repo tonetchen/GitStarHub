@@ -4,10 +4,11 @@
  */
 
 // Default AI model to use across the application
-export const DEFAULT_AI_MODEL = 'deepseek-chat';
+export const DEFAULT_AI_MODEL = 'deepseek-v4-flash';
 
 // List of supported AI models
 export const SUPPORTED_AI_MODELS = [
+  'deepseek-v4-flash',
   'deepseek-chat',
   'glm-4',
   'glm-4-flash',
@@ -18,6 +19,7 @@ export const SUPPORTED_AI_MODELS = [
 
 // Model display names for UI
 export const AI_MODEL_LABELS: Record<string, string> = {
+  'deepseek-v4-flash': 'DeepSeek V4 Flash',
   'deepseek-chat': 'DeepSeek Chat (Recommended)',
   'glm-4': 'GLM-4',
   'glm-4-flash': 'GLM-4 Flash (Faster)',
