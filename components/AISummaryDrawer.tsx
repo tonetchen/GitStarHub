@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Sparkles, X, Loader2, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -15,6 +15,7 @@ export function AISummaryDrawer({ isOpen, onClose, language = "en" }: AISummaryD
   const [summary, setSummary] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   const fetchSummary = async () => {
     setIsLoading(true);
@@ -52,12 +53,14 @@ export function AISummaryDrawer({ isOpen, onClose, language = "en" }: AISummaryD
       if (!reader) throw new Error("No reader available");
 
       let currentSummary = "";
+      let sseBuffer = "";
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
 
-        const chunk = decoder.decode(value);
-        const lines = chunk.split("\n");
+        sseBuffer += decoder.decode(value, { stream: true });
+        const lines = sseBuffer.split("\n");
+        sseBuffer = lines.pop() || "";
 
         for (const line of lines) {
           if (line.startsWith("data: ")) {
@@ -95,6 +98,13 @@ export function AISummaryDrawer({ isOpen, onClose, language = "en" }: AISummaryD
       fetchSummary();
     }
   }, [language, isOpen]);
+
+  // Auto-scroll to bottom during streaming to anchor viewport to latest content
+  useEffect(() => {
+    if (isLoading && summary && contentRef.current) {
+      contentRef.current.scrollTop = contentRef.current.scrollHeight;
+    }
+  }, [summary, isLoading]);
 
   // Clean up body scroll when drawer is open
   useEffect(() => {
@@ -221,7 +231,7 @@ export function AISummaryDrawer({ isOpen, onClose, language = "en" }: AISummaryD
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6 sm:p-8 custom-scrollbar">
+        <div ref={contentRef} className="flex-1 overflow-y-auto p-6 sm:p-8 custom-scrollbar">
           {isLoading && !summary && (
             <div className="flex flex-col items-center justify-center h-[60vh] space-y-6">
               <div className="relative">
@@ -257,7 +267,19 @@ export function AISummaryDrawer({ isOpen, onClose, language = "en" }: AISummaryD
             <div className="animate-in fade-in slide-in-from-bottom-6 duration-700 ease-out">
               <div className="bg-primary/5 border border-primary/10 rounded-2xl p-6 mb-8">
                 <div className="font-sans text-[15px]">
-                  {summary.split("\n").map((line, i) => renderMarkdownLine(line, i))}
+                  {(() => {
+                    const lines = summary.split("\n");
+                    const completedLines = isLoading ? lines.slice(0, -1) : lines;
+                    const pendingLine = isLoading ? lines[lines.length - 1] : null;
+                    return (
+                      <>
+                        {completedLines.map((line, i) => renderMarkdownLine(line, i))}
+                        {pendingLine !== null && pendingLine !== "" && (
+                          <p key="pending" className="mb-4 leading-relaxed text-foreground/85">{renderFormattedText(pendingLine)}</p>
+                        )}
+                      </>
+                    );
+                  })()}
                 </div>
               </div>
               
