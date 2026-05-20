@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Sparkles, X, Loader2, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -15,10 +15,31 @@ export function AISummaryDrawer({ isOpen, onClose, language = "en" }: AISummaryD
   const [summary, setSummary] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const rafRef = useRef<number>(0);
+  const pendingTextRef = useRef("");
+  const abortRef = useRef<AbortController | null>(null);
+  const hasFetchedRef = useRef(false);
 
-  const fetchSummary = async () => {
+  const flushSummary = useCallback(() => {
+    setSummary(pendingTextRef.current);
+    rafRef.current = 0;
+  }, []);
+
+  const appendText = useCallback((text: string) => {
+    pendingTextRef.current += text;
+    if (!rafRef.current) {
+      rafRef.current = requestAnimationFrame(flushSummary);
+    }
+  }, [flushSummary]);
+
+  const fetchSummary = async (lang: string) => {
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     setIsLoading(true);
     setSummary("");
+    pendingTextRef.current = "";
     setError(null);
 
     try {
@@ -27,7 +48,8 @@ export function AISummaryDrawer({ isOpen, onClose, language = "en" }: AISummaryD
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ language }),
+        body: JSON.stringify({ language: lang }),
+        signal: controller.signal,
       });
 
       if (!response.ok) {
@@ -35,7 +57,7 @@ export function AISummaryDrawer({ isOpen, onClose, language = "en" }: AISummaryD
       }
 
       const contentType = response.headers.get("content-type");
-      
+
       if (contentType?.includes("application/json")) {
         const data = await response.json();
         if (data.content) {
@@ -51,13 +73,14 @@ export function AISummaryDrawer({ isOpen, onClose, language = "en" }: AISummaryD
 
       if (!reader) throw new Error("No reader available");
 
-      let currentSummary = "";
+      let sseBuffer = "";
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
 
-        const chunk = decoder.decode(value);
-        const lines = chunk.split("\n");
+        sseBuffer += decoder.decode(value, { stream: true });
+        const lines = sseBuffer.split("\n");
+        sseBuffer = lines.pop() || "";
 
         for (const line of lines) {
           if (line.startsWith("data: ")) {
@@ -67,8 +90,7 @@ export function AISummaryDrawer({ isOpen, onClose, language = "en" }: AISummaryD
             try {
               const parsed = JSON.parse(data);
               if (parsed.content) {
-                currentSummary += parsed.content;
-                setSummary(currentSummary);
+                appendText(parsed.content);
               }
             } catch {
               // Ignore parse errors
@@ -76,25 +98,48 @@ export function AISummaryDrawer({ isOpen, onClose, language = "en" }: AISummaryD
           }
         }
       }
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = 0;
+      }
+      setSummary(pendingTextRef.current);
     } catch (err) {
+      if (err instanceof DOMException && err.name === "AbortError") return;
       setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Auto-fetch on first open only
   useEffect(() => {
-    if (isOpen) {
-      fetchSummary();
+    if (isOpen && !hasFetchedRef.current) {
+      hasFetchedRef.current = true;
+      fetchSummary(language);
     }
   }, [isOpen]);
 
-  // Refetch summary when language changes
+  // Refetch when language changes (only if drawer is open and not mid-stream)
+  const prevLangRef = useRef(language);
   useEffect(() => {
-    if (isOpen && !isLoading) {
-      fetchSummary();
+    if (language !== prevLangRef.current) {
+      prevLangRef.current = language;
+      if (isOpen) {
+        hasFetchedRef.current = true;
+        fetchSummary(language);
+      } else {
+        hasFetchedRef.current = false;
+      }
     }
   }, [language, isOpen]);
+
+  // Clean up on unmount
+  useEffect(() => {
+    return () => {
+      abortRef.current?.abort();
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
+  }, []);
 
   // Clean up body scroll when drawer is open
   useEffect(() => {
@@ -108,9 +153,13 @@ export function AISummaryDrawer({ isOpen, onClose, language = "en" }: AISummaryD
     };
   }, [isOpen]);
 
+  const handleRegenerate = () => {
+    fetchSummary(language);
+  };
+
   const renderFormattedText = (text: string) => {
     if (!text.includes("**")) return text;
-    
+
     const parts = text.split(/(\*\*.*?\*\*)/);
     return parts.map((part, i) => {
       if (part.startsWith("**") && part.endsWith("**")) {
@@ -121,15 +170,13 @@ export function AISummaryDrawer({ isOpen, onClose, language = "en" }: AISummaryD
   };
 
   const renderMarkdownLine = (line: string, index: number) => {
-    // Empty line
     if (!line.trim()) return <div key={index} className="h-4" />;
 
-    // Headers
     const h1Match = line.match(/^#\s+(.*)/);
     if (h1Match) {
       return <h1 key={index} className="text-2xl font-bold mt-8 mb-4 border-b pb-2">{renderFormattedText(h1Match[1])}</h1>;
     }
-    
+
     const h2Match = line.match(/^##\s+(.*)/);
     if (h2Match) {
       return <h2 key={index} className="text-xl font-bold mt-10 mb-5 flex items-center gap-3">
@@ -137,7 +184,7 @@ export function AISummaryDrawer({ isOpen, onClose, language = "en" }: AISummaryD
         {renderFormattedText(h2Match[1])}
       </h2>;
     }
-    
+
     const h3Match = line.match(/^###\s+(.*)/);
     if (h3Match) {
       return <h3 key={index} className="text-lg font-bold mt-6 mb-3 flex items-center gap-2 text-foreground">
@@ -145,7 +192,6 @@ export function AISummaryDrawer({ isOpen, onClose, language = "en" }: AISummaryD
       </h3>;
     }
 
-    // List items (supports optional indentation)
     const listMatch = line.match(/^(\s*)([-*+]|\d+\.)\s+(.*)/);
     if (listMatch) {
       const indent = listMatch[1].length;
@@ -154,8 +200,8 @@ export function AISummaryDrawer({ isOpen, onClose, language = "en" }: AISummaryD
       const isNumbered = /^\d/.test(marker);
 
       return (
-        <div 
-          key={index} 
+        <div
+          key={index}
           className="flex items-start gap-3 mb-2 leading-relaxed"
           style={{ paddingLeft: `${indent > 0 ? (indent * 0.5) : 0}rem` }}
         >
@@ -169,7 +215,6 @@ export function AISummaryDrawer({ isOpen, onClose, language = "en" }: AISummaryD
       );
     }
 
-    // Default paragraph
     return <p key={index} className="mb-4 leading-relaxed text-foreground/85">{renderFormattedText(line)}</p>;
   };
 
@@ -246,7 +291,7 @@ export function AISummaryDrawer({ isOpen, onClose, language = "en" }: AISummaryD
               <p className="text-sm text-muted-foreground mb-6 max-w-[300px]">
                 {error}. Please check your connection or AI configuration.
               </p>
-              <Button variant="outline" onClick={fetchSummary} className="gap-2">
+              <Button variant="outline" onClick={handleRegenerate} className="gap-2">
                 <RefreshCw className="size-4" />
                 Try Again
               </Button>
@@ -256,16 +301,30 @@ export function AISummaryDrawer({ isOpen, onClose, language = "en" }: AISummaryD
           {summary && (
             <div className="animate-in fade-in slide-in-from-bottom-6 duration-700 ease-out">
               <div className="bg-primary/5 border border-primary/10 rounded-2xl p-6 mb-8">
-                <div className="font-sans text-[15px]">
-                  {summary.split("\n").map((line, i) => renderMarkdownLine(line, i))}
+                <div className="font-sans text-[15px]" style={{ contentVisibility: "auto" }}>
+                  {(() => {
+                    const lines = summary.split("\n");
+                    const completedLines = isLoading ? lines.slice(0, -1) : lines;
+                    const pendingLine = isLoading ? lines[lines.length - 1] : null;
+                    return (
+                      <>
+                        {completedLines.map((line, i) => renderMarkdownLine(line, i))}
+                        {pendingLine !== null && pendingLine !== "" && (
+                          <p key="pending" className="mb-4 leading-relaxed text-foreground/85">{renderFormattedText(pendingLine)}</p>
+                        )}
+                      </>
+                    );
+                  })()}
                 </div>
               </div>
-              
-              <div className="flex items-center gap-4 py-8 opacity-40">
-                <div className="h-px flex-1 bg-border" />
-                <span className="text-[10px] font-bold uppercase tracking-[0.2em]">End of Summary</span>
-                <div className="h-px flex-1 bg-border" />
-              </div>
+
+              {!isLoading && (
+                <div className="flex items-center gap-4 py-8 opacity-40">
+                  <div className="h-px flex-1 bg-border" />
+                  <span className="text-[10px] font-bold uppercase tracking-[0.2em]">End of Summary</span>
+                  <div className="h-px flex-1 bg-border" />
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -282,7 +341,7 @@ export function AISummaryDrawer({ isOpen, onClose, language = "en" }: AISummaryD
             </Button>
             <Button
               className="flex-1 bg-gradient-to-r from-primary/90 to-primary shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all duration-300"
-              onClick={fetchSummary}
+              onClick={handleRegenerate}
               disabled={isLoading}
             >
               {isLoading ? (
